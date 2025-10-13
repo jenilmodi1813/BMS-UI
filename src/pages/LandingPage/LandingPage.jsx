@@ -1,100 +1,89 @@
 import React from "react";
-import { FaLock, FaMobileAlt, FaMoneyBillWave, FaUserFriends } from "react-icons/fa";
+import poster from "../../assets/poster.jfif"; // go up 2 levels: LandingPage -> pages -> src
+
+import {
+  FaLock,
+  FaMobileAlt,
+  FaMoneyBillWave,
+  FaUserFriends,
+} from "react-icons/fa";
+import { Link } from "react-router";
 
 const LandingPage = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800">
-      {/* Navbar */}
-      <nav className="flex justify-between items-center px-8 py-4 bg-white shadow">
-        <h1 className="text-2xl font-bold text-blue-700">SmartBank</h1>
-        <div className="space-x-6">
-          <a href="#features" className="hover:text-blue-700 font-medium">
-            Features
-          </a>
-          <a href="#about" className="hover:text-blue-700 font-medium">
-            About
-          </a>
-          <a href="#contact" className="hover:text-blue-700 font-medium">
-            Contact
-          </a>
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
-            Login
-          </button>
-        </div>
-      </nav>
+    <div className="py-10 md:pl-[100px] px-5 md:flex justify-between items-start bg-gray-50">
+      {/* Left Section */}
+      <div className="md:w-[50%] flex flex-col mt-8 md:mt-10 items-center md:items-start">
+        {/* Heading */}
+        <h1 className="text-5xl md:text-5xl mb-6 font-semibold text-gray-700 leading-tight tracking-tight text-center md:text-left w-[80%]">
+          Secure, Smart & Seamless Banking for Everyone
+        </h1>
 
-      {/* Hero Section */}
-      <section className="flex flex-col-reverse md:flex-row items-center justify-between px-8 md:px-20 py-16 bg-gradient-to-r from-blue-50 to-blue-100">
-        <div className="md:w-1/2 text-center md:text-left">
-          <h2 className="text-4xl md:text-5xl font-bold text-blue-700 leading-tight">
-            Your Digital Banking Partner
-          </h2>
-          <p className="mt-4 text-gray-600 text-lg">
-            Manage your accounts, transfer money, and track transactions — all in one secure platform.
-          </p>
-          <div className="mt-6 space-x-4">
-            <button className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700">
-              Get Started
-            </button>
-            <button className="border border-blue-600 text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-600 hover:text-white">
-              Learn More
-            </button>
+        {/* Subheading */}
+        <p className="text-gray-500 text-base mb-8 w-[80%] text-center md:text-left">
+          Manage your money effortlessly — from savings to investments, all in one
+          secure digital platform. Experience modern banking at your fingertips.
+        </p>
+
+        {/* Features Icons */}
+        <div className="grid grid-cols-2 gap-5 w-[80%] mb-8">
+          <div className="flex items-center gap-3">
+            <FaLock className="text-blue-700 text-2xl" />
+            <span className="text-gray-600">Secure Transactions</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <FaMoneyBillWave className="text-green-600 text-2xl" />
+            <span className="text-gray-600">Instant Payments</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <FaMobileAlt className="text-indigo-600 text-2xl" />
+            <span className="text-gray-600">Mobile Banking</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <FaUserFriends className="text-orange-500 text-2xl" />
+            <span className="text-gray-600">24/7 Customer Support</span>
           </div>
         </div>
 
-        <div className="md:w-1/2 mb-10 md:mb-0">
-          <img
-            src="https://cdn.dribbble.com/userupload/10135609/file/original-b6ffb25c2f9896c5a0a29d76db6f1d37.png"
-            alt="banking dashboard"
-            className="w-full rounded-2xl shadow-lg"
-          />
-        </div>
-      </section>
+        {/* Buttons */}
+        <div className="w-[80%] flex flex-col gap-3">
+          <Link to="/login">
+            <button className="w-full py-3 bg-blue-500 text-white rounded-3xl font-medium hover:bg-blue-800 transition">
+              Login to Your Account
+            </button>
+          </Link>
 
-      {/* Features Section */}
-      <section id="features" className="py-16 px-8 md:px-20 bg-white">
-        <h3 className="text-3xl font-bold text-center text-blue-700 mb-12">
-          Why Choose SmartBank?
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <FeatureCard
-            icon={<FaLock className="text-3xl text-blue-600" />}
-            title="Secure Transactions"
-            desc="Your data and money are protected with advanced encryption."
-          />
-          <FeatureCard
-            icon={<FaMobileAlt className="text-3xl text-blue-600" />}
-            title="Mobile Banking"
-            desc="Access your bank from anywhere, anytime on any device."
-          />
-          <FeatureCard
-            icon={<FaMoneyBillWave className="text-3xl text-blue-600" />}
-            title="Instant Transfers"
-            desc="Send and receive money instantly with zero hassle."
-          />
-          <FeatureCard
-            icon={<FaUserFriends className="text-3xl text-blue-600" />}
-            title="24/7 Support"
-            desc="We’re here round the clock to assist you whenever needed."
-          />
+          <Link to="/signUp">
+            <button className="w-full py-3 bg-white border border-blue-700 text-blue-700 rounded-3xl font-medium hover:bg-blue-50 transition">
+              Create New Account
+            </button>
+          </Link>
         </div>
-      </section>
 
-      {/* Footer */}
-      <footer className="bg-blue-700 text-white text-center py-6 mt-auto">
-        <p>© {new Date().getFullYear()} SmartBank. All rights reserved.</p>
-      </footer>
+        {/* Terms */}
+        <p className="text-xs text-gray-500 w-[80%] mt-6 leading-5 text-center md:text-left">
+          By continuing, you agree to{" "}
+          <span className="text-blue-800 cursor-pointer hover:underline">
+            Banking System’s Terms of Use
+          </span>{" "}
+          and{" "}
+          <span className="text-blue-800 cursor-pointer hover:underline">
+            Privacy Policy
+          </span>
+          .
+        </p>
+      </div>
+
+      {/* Right Section (Image) */}
+      <div className="md:w-[50%] mt-30 md:mt-0 flex justify-center">
+        <img
+          className="w-full max-w-[550px] h-auto object-cover rounded-lg shadow-md"
+          src={poster}
+          alt="Banking illustration"
+        />
+      </div>
     </div>
   );
 };
-
-// Reusable Feature Card component
-const FeatureCard = ({ icon, title, desc }) => (
-  <div className="flex flex-col items-center bg-blue-50 p-6 rounded-xl shadow hover:shadow-md transition">
-    {icon}
-    <h4 className="mt-4 text-xl font-semibold">{title}</h4>
-    <p className="mt-2 text-gray-600 text-center">{desc}</p>
-  </div>
-);
 
 export default LandingPage;
