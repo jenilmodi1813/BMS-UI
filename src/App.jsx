@@ -13,6 +13,7 @@ import DashBoard from "./pages/DashBoard/DashBoard";
 import Account from "./pages/Account/Account";
 import Profile from "./pages/Profile/Profile";
 import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
+import Transfer from "./components/Transfer/Transfer";
 
 function App() {
   // Manage login state (false = before login, true = after login)
@@ -31,7 +32,8 @@ function App() {
           <Route path="/login" element={<Login setIsLogin={setIsLogin} />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/dashboard" element={<DashBoard />} />
-          <Route path="/accounts" element={<Account />} />
+          <Route path="/dashboard" element={<DashBoard />} />
+          <Route path="/transfer" element={<Transfer />} />
           <Route path="/profile" element={<Profile />} />
         </Routes>
       </div>

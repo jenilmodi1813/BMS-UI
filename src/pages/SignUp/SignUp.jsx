@@ -112,7 +112,7 @@ const SignUp = () => {
             </label>
             <input
               id="phoneNo"
-              type="text"
+              type="number"
               maxLength={10}
               value={form.phoneNo}
               onChange={onChange}
