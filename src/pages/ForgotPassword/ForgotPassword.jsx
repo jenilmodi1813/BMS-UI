@@ -28,7 +28,7 @@ const ForgotPassword = () => {
     try {
       await axios.patch(`${API}/auth/change-password`, form);
       setMsg({ type: "success", text: "Password updated successfully!" });
-      setTimeout(() => navigate("/login"), 1500); // redirect to login
+      setTimeout(() => navigate("/login"), 1500); 
     } catch (err) {
       const serverMsg =
         err?.response?.data?.message || "Failed to update password. Please check your details.";
