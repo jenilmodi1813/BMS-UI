@@ -2,7 +2,6 @@ import axios from "axios";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
-
 const SignUp = () => {
   const navigate = useNavigate();
 
@@ -19,7 +18,8 @@ const SignUp = () => {
   const [msg, setMsg] = useState({ type: "", text: "" });
 
   // Your API base URL
-  const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081/api/v1";
+  const API =
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:8081/api/v1";
 
   const onChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.id]: e.target.value }));
@@ -58,7 +58,10 @@ const SignUp = () => {
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           {/* First Name */}
           <div>
-            <label htmlFor="firstName" className="text-sm font-medium text-gray-700">
+            <label
+              htmlFor="firstName"
+              className="text-sm font-medium text-gray-700"
+            >
               First Name
             </label>
             <input
@@ -74,7 +77,10 @@ const SignUp = () => {
 
           {/* Last Name */}
           <div>
-            <label htmlFor="lastName" className="text-sm font-medium text-gray-700">
+            <label
+              htmlFor="lastName"
+              className="text-sm font-medium text-gray-700"
+            >
               Last Name
             </label>
             <input
@@ -90,7 +96,10 @@ const SignUp = () => {
 
           {/* Email */}
           <div>
-            <label htmlFor="email" className="text-sm font-medium text-gray-700">
+            <label
+              htmlFor="email"
+              className="text-sm font-medium text-gray-700"
+            >
               Email Address
             </label>
             <input
@@ -106,16 +115,45 @@ const SignUp = () => {
           </div>
 
           {/* Phone Number */}
+          {/* Phone Number */}
           <div>
-            <label htmlFor="phoneNo" className="text-sm font-medium text-gray-700">
+            <label
+              htmlFor="phoneNo"
+              className="text-sm font-medium text-gray-700"
+            >
               Phone Number
             </label>
             <input
               id="phoneNo"
-              type="number"
-              maxLength={10}
+              type="text"
               value={form.phoneNo}
-              onChange={onChange}
+              onChange={(e) => {
+                const value = e.target.value;
+                // Allow only numbers and limit to 10 digits
+                if (/^\d{0,10}$/.test(value)) {
+                  setForm((prev) => ({ ...prev, phoneNo: value }));
+                }
+              }}
+              onBlur={(e) => {
+                // Extra validation when user leaves the field
+                const phone = e.target.value;
+                if (phone.length === 10) {
+                  if (/^0+$/.test(phone)) {
+                    alert("Invalid phone number — cannot be all zeros.");
+                    setForm((prev) => ({ ...prev, phoneNo: "" }));
+                  }
+                }
+              }}
+              onPaste={(e) => {
+                // Prevent pasting non-numeric content
+                const paste = e.clipboardData.getData("text");
+                if (!/^\d{0,10}$/.test(paste)) {
+                  e.preventDefault();
+                }
+              }}
+              maxLength={10}
+              inputMode="numeric"
+              pattern="[1-9][0-9]{9}"
               className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-1 focus:ring-blue-500 focus:outline-none"
               placeholder="Enter 10-digit phone number"
               required
@@ -124,7 +162,10 @@ const SignUp = () => {
 
           {/* Password */}
           <div>
-            <label htmlFor="password" className="text-sm font-medium text-gray-700">
+            <label
+              htmlFor="password"
+              className="text-sm font-medium text-gray-700"
+            >
               Password
             </label>
             <input
@@ -133,7 +174,7 @@ const SignUp = () => {
               value={form.password}
               onChange={onChange}
               minLength={8}
-              autoComplete="new-password" 
+              autoComplete="new-password"
               className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-1 focus:ring-blue-500 focus:outline-none"
               placeholder="Create a strong password"
               required
@@ -142,7 +183,10 @@ const SignUp = () => {
 
           {/* Gender */}
           <div>
-            <label htmlFor="gender" className="text-sm font-medium text-gray-700">
+            <label
+              htmlFor="gender"
+              className="text-sm font-medium text-gray-700"
+            >
               Gender
             </label>
             <select
@@ -162,7 +206,9 @@ const SignUp = () => {
           {/* Terms */}
           <p className="text-xs text-gray-600 leading-4 mt-1">
             By creating an account, you agree to our{" "}
-            <span className="text-blue-700 cursor-pointer hover:underline">Terms</span>{" "}
+            <span className="text-blue-700 cursor-pointer hover:underline">
+              Terms
+            </span>{" "}
             and{" "}
             <span className="text-blue-700 cursor-pointer hover:underline">
               Privacy Policy
