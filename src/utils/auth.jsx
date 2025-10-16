@@ -1,12 +1,16 @@
-// utils/auth.js
-export const isAuthenticated = () => {
-  return localStorage.getItem("isLoggedIn") === "true";
+// Save user info
+export const saveUser = (user) => {
+  localStorage.setItem("user", JSON.stringify(user));
 };
 
-export const login = () => {
-  localStorage.setItem("isLoggedIn", "true");
+// Get current logged-in user
+export const getCurrentUser = () => {
+  const user = localStorage.getItem("user");
+  return user ? JSON.parse(user) : null;
 };
 
+// Remove user (for logout)
 export const logout = () => {
-  localStorage.removeItem("isLoggedIn");
+  localStorage.removeItem("user");
+  localStorage.removeItem("isLogin");
 };
