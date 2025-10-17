@@ -1,259 +1,323 @@
-import axios from "axios";
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const SignUp = () => {
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({
+  const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     phoneNo: "",
     password: "",
+    address: "",
+    dob: "",
     gender: "",
+    accountType: "",
+    balance: "",
   });
 
-  const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState({ type: "", text: "" });
+  const [errors, setErrors] = useState({});
 
-  // Your API base URL
-  const API =
-    import.meta.env.VITE_API_BASE_URL || "http://localhost:8081/api/v1";
+  const accountTypes = ["SAVINGS", "CURRENT", "FIXED_DEPOSIT"];
 
-  const onChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.id]: e.target.value }));
+  const validate = () => {
+    let newErrors = {};
+
+    if (!/^[A-Za-z]{2,50}$/.test(formData.firstName))
+      newErrors.firstName = "First name must be 2–50 letters.";
+
+    if (!/^[A-Za-z]{2,50}$/.test(formData.lastName))
+      newErrors.lastName = "Last name must be 2–50 letters.";
+
+    if (!/^\S+@\S+\.\S+$/.test(formData.email))
+      newErrors.email = "Invalid email format.";
+
+    if (!/^\d{10}$/.test(formData.phoneNo))
+      newErrors.phoneNo = "Phone number must be 10 digits.";
+
+    if (formData.password.length < 8)
+      newErrors.password = "Password must be at least 8 characters.";
+
+    if (!formData.address.trim()) newErrors.address = "Address is required.";
+
+    if (!formData.dob) newErrors.dob = "Date of Birth is required.";
+
+    if (!formData.gender) newErrors.gender = "Please select gender.";
+
+    if (!formData.accountType)
+      newErrors.accountType = "Account type is required.";
+
+    if (!formData.balance) {
+      newErrors.balance = "Balance is required.";
+    } else if (isNaN(formData.balance) || Number(formData.balance) < 0) {
+      newErrors.balance = "Balance must be a positive number.";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const onSubmit = async (e) => {
-    e.preventDefault();
-    setMsg({ type: "", text: "" });
-    setLoading(true);
+  const handleChange = (e) => {
+    const { name, value } = e.target;
 
-    try {
-      // POST request to backend
-      console.log("Register Payload:", form);
-      await axios.post(`${API}/auth/register`, form);
-      setMsg({ type: "success", text: "Account created successfully!" });
-      setTimeout(() => navigate("/login"), 1500);
-    } catch (err) {
-      const serverMsg =
-        err?.response?.data?.message ||
-        "Signup failed. Please check your details.";
-      setMsg({ type: "error", text: serverMsg });
-    } finally {
-      setLoading(false);
+    // Phone number: only digits
+    if (name === "phoneNo" && value && !/^\d*$/.test(value)) return;
+
+    // Balance: only numbers & decimal
+    if (name === "balance" && value && !/^\d*\.?\d*$/.test(value)) return;
+
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (validate()) {
+      console.log("✅ Form Data Submitted:", formData);
+      // TODO: Call your backend API here
+      navigate("/login"); // redirect to login page
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-blue-50 via-white to-blue-100 px-4">
-      {/* Header */}
-      <h1 className="text-3xl md:text-4xl font-semibold text-blue-500 mb-6 text-center">
-        Create Your Bank Account
-      </h1>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="bg-white shadow-2xl rounded-2xl p-8 w-full max-w-3xl">
+        <h2 className="text-3xl font-bold text-center text-blue-600 mb-8">
+          Customer Registration
+        </h2>
 
-      {/* Card */}
-      <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md border border-gray-100">
-        <form onSubmit={onSubmit} className="flex flex-col gap-4">
-          {/* First Name */}
-          <div>
-            <label
-              htmlFor="firstName"
-              className="text-sm font-medium text-gray-700"
-            >
-              First Name
-            </label>
-            <input
-              id="firstName"
-              type="text"
-              value={form.firstName}
-              onChange={onChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-              placeholder="Enter first name"
-              required
-            />
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* First & Last Name */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                First Name
+              </label>
+              <input
+                type="text"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleChange}
+                placeholder="Enter your first name"
+                className={`w-full border ${
+                  errors.firstName ? "border-red-500" : "border-gray-300"
+                } rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                required
+              />
+              {errors.firstName && (
+                <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Last Name
+              </label>
+              <input
+                type="text"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                placeholder="Enter your last name"
+                className={`w-full border ${
+                  errors.lastName ? "border-red-500" : "border-gray-300"
+                } rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                required
+              />
+              {errors.lastName && (
+                <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
+              )}
+            </div>
           </div>
 
-          {/* Last Name */}
-          <div>
-            <label
-              htmlFor="lastName"
-              className="text-sm font-medium text-gray-700"
-            >
-              Last Name
-            </label>
-            <input
-              id="lastName"
-              type="text"
-              value={form.lastName}
-              onChange={onChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-              placeholder="Enter last name"
-              required
-            />
-          </div>
+          {/* Email & Phone */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="example@gmail.com"
+                className={`w-full border ${
+                  errors.email ? "border-red-500" : "border-gray-300"
+                } rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                required
+              />
+              {errors.email && (
+                <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+              )}
+            </div>
 
-          {/* Email */}
-          <div>
-            <label
-              htmlFor="email"
-              className="text-sm font-medium text-gray-700"
-            >
-              Email Address
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={form.email}
-              onChange={onChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-              placeholder="Enter your email"
-              required
-              autoComplete="username"
-            />
-          </div>
-
-          {/* Phone Number */}
-          {/* Phone Number */}
-          <div>
-            <label
-              htmlFor="phoneNo"
-              className="text-sm font-medium text-gray-700"
-            >
-              Phone Number
-            </label>
-            <input
-              id="phoneNo"
-              type="text"
-              value={form.phoneNo}
-              onChange={(e) => {
-                const value = e.target.value;
-                // Allow only numbers and limit to 10 digits
-                if (/^\d{0,10}$/.test(value)) {
-                  setForm((prev) => ({ ...prev, phoneNo: value }));
-                }
-              }}
-              onBlur={(e) => {
-                // Extra validation when user leaves the field
-                const phone = e.target.value;
-                if (phone.length === 10) {
-                  if (/^0+$/.test(phone)) {
-                    alert("Invalid phone number — cannot be all zeros.");
-                    setForm((prev) => ({ ...prev, phoneNo: "" }));
-                  }
-                }
-              }}
-              onPaste={(e) => {
-                // Prevent pasting non-numeric content
-                const paste = e.clipboardData.getData("text");
-                if (!/^\d{0,10}$/.test(paste)) {
-                  e.preventDefault();
-                }
-              }}
-              maxLength={10}
-              inputMode="numeric"
-              pattern="[1-9][0-9]{9}"
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-              placeholder="Enter 10-digit phone number"
-              required
-            />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Phone Number
+              </label>
+              <input
+                type="text"
+                name="phoneNo"
+                value={formData.phoneNo}
+                onChange={handleChange}
+                placeholder="Enter 10-digit number"
+                maxLength="10"
+                className={`w-full border ${
+                  errors.phoneNo ? "border-red-500" : "border-gray-300"
+                } rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                required
+              />
+              {errors.phoneNo && (
+                <p className="text-red-500 text-sm mt-1">{errors.phoneNo}</p>
+              )}
+            </div>
           </div>
 
           {/* Password */}
           <div>
-            <label
-              htmlFor="password"
-              className="text-sm font-medium text-gray-700"
-            >
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Password
             </label>
             <input
-              id="password"
               type="password"
-              value={form.password}
-              onChange={onChange}
-              minLength={8}
-              autoComplete="new-password"
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-              placeholder="Create a strong password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Enter your password"
+              className={`w-full border ${
+                errors.password ? "border-red-500" : "border-gray-300"
+              } rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
               required
             />
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+            )}
           </div>
 
-          {/* Gender */}
+          {/* Address */}
           <div>
-            <label
-              htmlFor="gender"
-              className="text-sm font-medium text-gray-700"
-            >
-              Gender
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Address
             </label>
-            <select
-              id="gender"
-              value={form.gender}
-              onChange={onChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            <textarea
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              rows="3"
+              placeholder="Enter your full address"
+              className={`w-full border ${
+                errors.address ? "border-red-500" : "border-gray-300"
+              } rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
               required
-            >
-              <option value="">Select Gender</option>
-              <option value="MALE">Male</option>
-              <option value="FEMALE">Female</option>
-              <option value="OTHER">Other</option>
-            </select>
+            ></textarea>
+            {errors.address && (
+              <p className="text-red-500 text-sm mt-1">{errors.address}</p>
+            )}
           </div>
 
-          {/* Terms */}
-          <p className="text-xs text-gray-600 leading-4 mt-1">
-            By creating an account, you agree to our{" "}
-            <span className="text-blue-700 cursor-pointer hover:underline">
-              Terms
-            </span>{" "}
-            and{" "}
-            <span className="text-blue-700 cursor-pointer hover:underline">
-              Privacy Policy
-            </span>
-            .
-          </p>
+          {/* DOB & Gender */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Date of Birth
+              </label>
+              <input
+                type="date"
+                name="dob"
+                value={formData.dob}
+                onChange={handleChange}
+                className={`w-full border ${
+                  errors.dob ? "border-red-500" : "border-gray-300"
+                } rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                required
+              />
+              {errors.dob && (
+                <p className="text-red-500 text-sm mt-1">{errors.dob}</p>
+              )}
+            </div>
 
-          {/* Submit */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Gender
+              </label>
+              <select
+                name="gender"
+                value={formData.gender}
+                onChange={handleChange}
+                className={`w-full border ${
+                  errors.gender ? "border-red-500" : "border-gray-300"
+                } rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+              >
+                <option value="">Select gender</option>
+                <option value="MALE">Male</option>
+                <option value="FEMALE">Female</option>
+                <option value="OTHER">Other</option>
+              </select>
+              {errors.gender && (
+                <p className="text-red-500 text-sm mt-1">{errors.gender}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Account Type & Balance */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Account Type
+              </label>
+              <select
+                name="accountType"
+                value={formData.accountType}
+                onChange={handleChange}
+                className={`w-full border ${
+                  errors.accountType ? "border-red-500" : "border-gray-300"
+                } rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                required
+              >
+                <option value="">Select account type</option>
+                {accountTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+              {errors.accountType && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.accountType}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Initial Balance
+              </label>
+              <input
+                type="text"
+                name="balance"
+                value={formData.balance}
+                onChange={handleChange}
+                placeholder="Enter initial balance"
+                className={`w-full border ${
+                  errors.balance ? "border-red-500" : "border-gray-300"
+                } rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                required
+              />
+              {errors.balance && (
+                <p className="text-red-500 text-sm mt-1">{errors.balance}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Submit Button */}
           <button
             type="submit"
-            disabled={loading}
-            className="bg-blue-700 hover:bg-blue-800 text-white py-2 mt-2 rounded-full font-semibold transition disabled:opacity-70"
+            className="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition-all duration-300 shadow-md"
           >
-            {loading ? "Creating Account..." : "Create Account"}
+            Register Now
           </button>
         </form>
-
-        {/* Message */}
-        {msg.text && (
-          <p
-            className={`mt-3 text-sm text-center ${
-              msg.type === "error" ? "text-red-600" : "text-green-600"
-            }`}
-          >
-            {msg.text}
-          </p>
-        )}
-
-        {/* Divider */}
-        <div className="flex items-center my-4">
-          <hr className="flex-grow border-gray-300" />
-          <span className="px-2 text-gray-500 text-sm">or</span>
-          <hr className="flex-grow border-gray-300" />
-        </div>
-
-        {/* Login Redirect */}
-        <p className="text-center text-sm text-gray-700">
-          Already have an account?{" "}
-          <Link
-            to="/login"
-            className="text-blue-700 font-medium cursor-pointer hover:underline"
-          >
-            Login
-          </Link>
-        </p>
       </div>
     </div>
   );

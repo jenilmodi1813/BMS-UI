@@ -155,68 +155,93 @@ import { saveUser } from "../../utils/auth";
 
 const Login = ({ setIsLogin }) => {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: "", password: "" });
+
+  const [form, setForm] = useState({ customerId: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState({ type: "", text: "" });
 
-  const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081/api/v1/";
+  const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081/api/v1";
 
-  const onChange = (e) => setForm(prev => ({ ...prev, [e.target.id]: e.target.value }));
+  // Allow only numbers, max 10 digits
+  const onChange = (e) => {
+    const { id, value } = e.target;
+    if (id === "customerId") {
+      // only digits, no letters/symbols
+      if (/^\d{0,10}$/.test(value)) {
+        setForm((prev) => ({ ...prev, [id]: value }));
+      }
+    } else {
+      setForm((prev) => ({ ...prev, [id]: value }));
+    }
+  };
+
+  const validateCustomerId = (id) => /^[0-9]{10}$/.test(id); // exactly 10 digits
 
   const onSubmit = async (e) => {
     e.preventDefault();
     setMsg({ type: "", text: "" });
+
+    if (!validateCustomerId(form.customerId)) {
+      setMsg({ type: "error", text: "Customer ID must be exactly 10 digits." });
+      return;
+    }
+
     setLoading(true);
-
     try {
-  const res = await axios.post(`${API}/auth/login`, form);
+      const res = await axios.post(`${API}/auth/login`, form);
 
-  // Store user info in localStorage
-  const userData = {
-    id: res.data.id,
-    email: res.data.email,
-    role: res.data.role,
-    status: res.data.status,
-  };
-  // localStorage.setItem("user", JSON.stringify(userData));
-  saveUser(userData);
+      const userData = {
+        id: res.data.id,
+        customerId: res.data.customerId,
+        role: res.data.role,
+        status: res.data.status,
+      };
+      saveUser(userData);
 
-  // Update App login state
-  setIsLogin(true);
-
-  setMsg({ type: "success", text: "Login successful!" });
-  setTimeout(() => navigate("/dashboard"), 1000);
-} catch (err) {
-  const serverMsg = err?.response?.data?.message || "Login failed. Please check your credentials.";
-  setMsg({ type: "error", text: serverMsg });
-} finally {
+      setIsLogin(true);
+      setMsg({ type: "success", text: "Login successful!" });
+      setTimeout(() => navigate("/dashboard"), 1000);
+    } catch (err) {
+      const serverMsg =
+        err?.response?.data?.message ||
+        "Login failed. Please check your Customer ID and password.";
+      setMsg({ type: "error", text: serverMsg });
+    } finally {
       setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-blue-50 via-white to-blue-100 px-4">
-      <h1 className="text-3xl md:text-4xl font-semibold text-blue-600 mb-6 text-center">
-        Welcome Back to SecureBank
+      <h1 className="text-3xl md:text-4xl font-semibold text-blue-500 mb-6 text-center">
+        Welcome Back to BankMate
       </h1>
 
       <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md border border-gray-100">
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
+          {/* Customer ID */}
           <div>
-            <label htmlFor="email" className="text-sm font-medium text-gray-700">Email Address</label>
+            <label htmlFor="customerId" className="text-sm font-medium text-gray-700">
+              Customer ID
+            </label>
             <input
-              id="email"
-              type="email"
-              value={form.email}
+              id="customerId"
+              type="text"
+              value={form.customerId}
               onChange={onChange}
+              maxLength={10}
+              inputMode="numeric"
               className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-              placeholder="Enter your registered email"
+              placeholder="Enter your 10-digit Customer ID"
               required
             />
           </div>
 
+          {/* Password */}
           <div>
-            <label htmlFor="password" className="text-sm font-medium text-gray-700">Password</label>
+            <label htmlFor="password" className="text-sm font-medium text-gray-700">
+              Password
+            </label>
             <input
               id="password"
               type="password"
@@ -229,7 +254,9 @@ const Login = ({ setIsLogin }) => {
           </div>
 
           <div className="flex justify-end">
-            <Link to="/forgot-password" className="text-sm text-blue-700 hover:underline">Forgot Password?</Link>
+            <Link to="/forgot-password" className="text-sm text-blue-700 hover:underline">
+              Forgot Password?
+            </Link>
           </div>
 
           <button
@@ -242,7 +269,11 @@ const Login = ({ setIsLogin }) => {
         </form>
 
         {msg.text && (
-          <p className={`mt-3 text-sm text-center ${msg.type === "error" ? "text-red-600" : "text-green-600"}`}>
+          <p
+            className={`mt-3 text-sm text-center ${
+              msg.type === "error" ? "text-red-600" : "text-green-600"
+            }`}
+          >
             {msg.text}
           </p>
         )}
@@ -255,13 +286,21 @@ const Login = ({ setIsLogin }) => {
 
         <p className="text-center text-sm text-gray-700">
           Don’t have an account?{" "}
-          <Link to="/signUp" className="text-blue-700 font-medium cursor-pointer hover:underline">Create one</Link>
+          <Link
+            to="/signUp"
+            className="text-blue-700 font-medium cursor-pointer hover:underline"
+          >
+            Create one
+          </Link>
         </p>
       </div>
 
-      <p className="text-xs text-gray-500 mt-6">© {new Date().getFullYear()} SecureBank. All rights reserved.</p>
+      <p className="text-xs text-gray-500 mt-6">
+        © {new Date().getFullYear()} SecureBank. All rights reserved.
+      </p>
     </div>
   );
 };
 
 export default Login;
+
