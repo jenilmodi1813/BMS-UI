@@ -1,10 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { registerUser } from "../../api/authApi";
+import toast, { Toaster } from 'react-hot-toast';
+
 
 const SignUp = () => {
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({
+  const defaultFormData = {
     firstName: "",
     lastName: "",
     email: "",
@@ -12,14 +15,12 @@ const SignUp = () => {
     password: "",
     address: "",
     dob: "",
-    gender: "",
-    accountType: "",
-    balance: "",
-  });
+    gender: ""
+  };
 
+  const [formData, setFormData] = useState(defaultFormData);
   const [errors, setErrors] = useState({});
-
-  const accountTypes = ["SAVINGS", "CURRENT", "FIXED_DEPOSIT"];
+  const [loading, setLoading] = useState(false);
 
   const validate = () => {
     let newErrors = {};
@@ -45,50 +46,49 @@ const SignUp = () => {
 
     if (!formData.gender) newErrors.gender = "Please select gender.";
 
-    if (!formData.accountType)
-      newErrors.accountType = "Account type is required.";
-
-    if (!formData.balance) {
-      newErrors.balance = "Balance is required.";
-    } else if (isNaN(formData.balance) || Number(formData.balance) < 0) {
-      newErrors.balance = "Balance must be a positive number.";
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+  const registerNotify = () => toast.success('Customer registered successfully!');
+  const errorNotify = (err) => toast.error(err?.response?.data?.message || "Failed to register. Please try again.");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    // Phone number: only digits
     if (name === "phoneNo" && value && !/^\d*$/.test(value)) return;
-
-    // Balance: only numbers & decimal
-    if (name === "balance" && value && !/^\d*\.?\d*$/.test(value)) return;
-
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validate()) {
-      console.log("✅ Form Data Submitted:", formData);
-      // TODO: Call your backend API here
-      navigate("/login"); // redirect to login page
+    if (!validate()) return;
+
+    try {
+      setLoading(true);
+      const response = await registerUser(formData);
+      console.log("Registration success:", response.data);
+
+      registerNotify();
+      setFormData(defaultFormData);
+      navigate("/login");
+    } catch (err) {
+      console.error("Registration error:", err);
+      errorNotify(err);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
+    <>
+        <Toaster position="top-center" />
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="bg-white shadow-2xl rounded-2xl p-8 w-full max-w-3xl">
         <h2 className="text-3xl font-bold text-center text-blue-600 mb-8">
           Customer Registration
         </h2>
-
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* First & Last Name */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 First Name
@@ -102,7 +102,6 @@ const SignUp = () => {
                 className={`w-full border ${
                   errors.firstName ? "border-red-500" : "border-gray-300"
                 } rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
-                required
               />
               {errors.firstName && (
                 <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
@@ -122,7 +121,6 @@ const SignUp = () => {
                 className={`w-full border ${
                   errors.lastName ? "border-red-500" : "border-gray-300"
                 } rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
-                required
               />
               {errors.lastName && (
                 <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
@@ -130,8 +128,7 @@ const SignUp = () => {
             </div>
           </div>
 
-          {/* Email & Phone */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Email
@@ -145,7 +142,6 @@ const SignUp = () => {
                 className={`w-full border ${
                   errors.email ? "border-red-500" : "border-gray-300"
                 } rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
-                required
               />
               {errors.email && (
                 <p className="text-red-500 text-sm mt-1">{errors.email}</p>
@@ -166,7 +162,6 @@ const SignUp = () => {
                 className={`w-full border ${
                   errors.phoneNo ? "border-red-500" : "border-gray-300"
                 } rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
-                required
               />
               {errors.phoneNo && (
                 <p className="text-red-500 text-sm mt-1">{errors.phoneNo}</p>
@@ -174,8 +169,7 @@ const SignUp = () => {
             </div>
           </div>
 
-          {/* Password */}
-          <div>
+          <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Password
             </label>
@@ -188,7 +182,6 @@ const SignUp = () => {
               className={`w-full border ${
                 errors.password ? "border-red-500" : "border-gray-300"
               } rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
-              required
             />
             {errors.password && (
               <p className="text-red-500 text-sm mt-1">{errors.password}</p>
@@ -196,7 +189,7 @@ const SignUp = () => {
           </div>
 
           {/* Address */}
-          <div>
+          <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Address
             </label>
@@ -209,7 +202,6 @@ const SignUp = () => {
               className={`w-full border ${
                 errors.address ? "border-red-500" : "border-gray-300"
               } rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
-              required
             ></textarea>
             {errors.address && (
               <p className="text-red-500 text-sm mt-1">{errors.address}</p>
@@ -217,7 +209,7 @@ const SignUp = () => {
           </div>
 
           {/* DOB & Gender */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Date of Birth
@@ -230,7 +222,6 @@ const SignUp = () => {
                 className={`w-full border ${
                   errors.dob ? "border-red-500" : "border-gray-300"
                 } rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
-                required
               />
               {errors.dob && (
                 <p className="text-red-500 text-sm mt-1">{errors.dob}</p>
@@ -260,66 +251,18 @@ const SignUp = () => {
             </div>
           </div>
 
-          {/* Account Type & Balance */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Account Type
-              </label>
-              <select
-                name="accountType"
-                value={formData.accountType}
-                onChange={handleChange}
-                className={`w-full border ${
-                  errors.accountType ? "border-red-500" : "border-gray-300"
-                } rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
-                required
-              >
-                <option value="">Select account type</option>
-                {accountTypes.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-              {errors.accountType && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.accountType}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Initial Balance
-              </label>
-              <input
-                type="text"
-                name="balance"
-                value={formData.balance}
-                onChange={handleChange}
-                placeholder="Enter initial balance"
-                className={`w-full border ${
-                  errors.balance ? "border-red-500" : "border-gray-300"
-                } rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
-                required
-              />
-              {errors.balance && (
-                <p className="text-red-500 text-sm mt-1">{errors.balance}</p>
-              )}
-            </div>
-          </div>
-
           {/* Submit Button */}
-          <button
+         <button
             type="submit"
+            disabled={loading}
             className="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition-all duration-300 shadow-md"
           >
-            Register Now
+            {loading ? "Registering..." : "Register Now"}
           </button>
         </form>
       </div>
     </div>
+    </>
   );
 };
 
