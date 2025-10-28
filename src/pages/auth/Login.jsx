@@ -1,20 +1,22 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { loginUser } from "../../api/authApi";
-import { saveData } from "../../services/storageService";
-import toast, { Toaster } from 'react-hot-toast';
+import { useDispatch, useSelector } from "react-redux";
+import toast, { Toaster } from "react-hot-toast";
+import { loginRequest } from "../../redux/auth/slice";
 
-const Login = ({ setIsLogin }) => {
+const Login = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { loading } = useSelector((state) => state.auth);
+
   const [form, setForm] = useState({ loginId: "", password: "" });
-  const [loading, setLoading] = useState(false);
 
   const onChange = (e) => {
     const { id, value } = e.target;
     setForm((prev) => ({ ...prev, [id]: value }));
   };
 
-  const onSubmit = async (e) => {
+  const onSubmit = (e) => {
     e.preventDefault();
 
     if (!form.loginId.trim()) {
@@ -27,54 +29,32 @@ const Login = ({ setIsLogin }) => {
       return;
     }
 
-    setLoading(true);
-
-    try {
-      const data = await loginUser({
+    dispatch(
+      loginRequest({
         loginId: form.loginId,
-        password: form.password
-      });
-
-      console.log("Login response:", data);
-
-      const userData = {
-        id: data.id,
-        customerId: data.customerId,
-        loginId: data.loginId || data.cifNumber || form.loginId,
-        name: data.name,
-        email: data.email,
-        phone: data.phone,
-        role: data.role || 'CUSTOMER',
-        status: data.status,
-      };
-
-      saveData("user", userData);
-      setIsLogin(true);
-      toast.success("Login successful! Redirecting...");
-
-      setTimeout(() => {
-        if (data.status === 'PENDING') {
-          navigate('/kyc-verification');
-        } else if (data.status === 'ACTIVE') {
-          navigate('/dashboard');
-        } else {
-          navigate('/account-pending');
-        }
-      }, 1000);
-
-    } catch (error) {
-      console.error("Login error:", error);
-      const message = error?.response?.data?.message || error.message || "Login failed. Please try again.";
-      toast.error(message);
-    } finally {
-      setLoading(false);
-    }
+        password: form.password,
+        onSuccess: (data) => {
+          toast.success("Login successful! Redirecting...");
+          setTimeout(() => {
+            if (data.status === "PENDING") navigate("/kyc-verification");
+            else if (data.status === "ACTIVE") navigate("/dashboard");
+            else navigate("/account-pending");
+          }, 1000);
+        },
+        onError: (error) => {
+          const message =
+            error?.response?.data?.message ||
+            error.message ||
+            "Login failed. Please try again.";
+          toast.error(message);
+        },
+      })
+    );
   };
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-blue-50 via-white to-blue-100 px-4">
-      <Toaster position="top-center" /> {/* ✅ Add Toaster */}
-
+      <Toaster position="top-center" />
       <h1 className="text-3xl md:text-4xl font-semibold text-blue-500 mb-6 text-center">
         Welcome Back to BankMate
       </h1>
@@ -131,9 +111,27 @@ const Login = ({ setIsLogin }) => {
           >
             {loading ? (
               <span className="flex items-center justify-center">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <svg
+                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 
+                     5.291A7.962 7.962 0 014 12H0c0 
+                     3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
                 Signing in...
               </span>
