@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import toast, { Toaster } from "react-hot-toast";
@@ -7,7 +7,7 @@ import { loginRequest } from "../../redux/auth/slice";
 const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { loading } = useSelector((state) => state.auth);
+  const { loading, isAuthenticated, user, error } = useSelector((state) => state.auth);
 
   const [form, setForm] = useState({ loginId: "", password: "" });
 
@@ -33,24 +33,29 @@ const Login = () => {
       loginRequest({
         loginId: form.loginId,
         password: form.password,
-        onSuccess: (data) => {
-          toast.success("Login successful! Redirecting...");
-          setTimeout(() => {
-            if (data.status === "PENDING") navigate("/kyc-verification");
-            else if (data.status === "ACTIVE") navigate("/dashboard");
-            else navigate("/account-pending");
-          }, 1000);
-        },
-        onError: (error) => {
-          const message =
-            error?.response?.data?.message ||
-            error.message ||
-            "Login failed. Please try again.";
-          toast.error(message);
-        },
       })
     );
   };
+
+  // ✅ Handle redirect and toast after successful login
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      toast.success("Login successful! Redirecting...");
+
+      setTimeout(() => {
+        if (user.status === "PENDING") navigate("/kyc-verification");
+        else if (user.status === "ACTIVE") navigate("/dashboard");
+        else navigate("/account-pending");
+      }, 1000);
+    }
+  }, [isAuthenticated, user, navigate]);
+
+  // ✅ Show toast for login failure
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-blue-50 via-white to-blue-100 px-4">

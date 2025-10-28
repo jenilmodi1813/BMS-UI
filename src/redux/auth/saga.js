@@ -7,39 +7,63 @@ import {
   registerSuccess,
   registerFailure,
 } from "./slice";
-import { loginUser, registerUser } from "./service";
+import { loginUserApi, registerUserApi } from "./service";
+import toast from "react-hot-toast";
 
 // 🔹 Worker Saga — Login
 function* handleLogin(action) {
-  const { loginId, password, onSuccess, onError } = action.payload;
   try {
-    const data = yield call(loginUser, { loginId, password });
+    const { loginId, password } = action.payload;
 
-    // Save token and user info in localStorage
-    localStorage.setItem("user", JSON.stringify(data));
-    localStorage.setItem("accessToken", data.tokens?.accessToken || "");
-    localStorage.setItem("refreshToken", data.tokens?.refreshToken || "");
+    // Call API
+    const data = yield call(loginUserApi, { loginId, password });
+    console.log("Login API Response:", data);
 
-    yield put(loginSuccess(data));
+    const { customer, tokens, message } = data;
 
-    if (onSuccess) onSuccess(data); // callback to UI
+    // ✅ Save structured auth info
+    localStorage.setItem(
+      "auth",
+      JSON.stringify({
+        customer,
+        tokens,
+      })
+    );
+
+    // ✅ Update Redux state (match slice structure)
+    yield put(
+      loginSuccess({
+        customer,
+        tokens,
+      })
+    );
+
+    toast.success(message || "Login successful!");
   } catch (error) {
-    yield put(loginFailure(error));
-    if (onError) onError(error);
+    const message =
+      error?.response?.data?.message ||
+      error.message ||
+      "Login failed. Please try again.";
+    yield put(loginFailure(message));
+    toast.error(message);
   }
 }
 
 // 🔹 Worker Saga — Register
 function* handleRegister(action) {
-  const { payload, onSuccess, onError } = action.payload;
   try {
-    const data = yield call(registerUser, payload);
+    const { payload } = action.payload;
+    const data = yield call(registerUserApi, payload);
 
     yield put(registerSuccess(data));
-    if (onSuccess) onSuccess(data);
+    toast.success("Registration successful!");
   } catch (error) {
-    yield put(registerFailure(error));
-    if (onError) onError(error);
+    const message =
+      error?.response?.data?.message ||
+      error.message ||
+      "Registration failed.";
+    yield put(registerFailure(message));
+    toast.error(message);
   }
 }
 
