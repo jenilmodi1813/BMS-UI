@@ -60,21 +60,12 @@ const SignUp = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!validate()) return;
-    dispatch(registerRequest({
-      payload: formData,
-      onSuccess: (data) => {
-        toast.success(data.message);
-        navigate("/login");
-      },
-  onError: (error) => {
-    toast.error(error?.response?.data?.message || "Registration failed");
-  },
-}));
+    dispatch(registerRequest(formData));
     navigate("/login");
   };
 
   useEffect(() => {
-    if (user) {
+    if (!loading && user && !error) {
       toast.success("Customer registered successfully!");
       setFormData(defaultFormData);
       navigate("/login");
