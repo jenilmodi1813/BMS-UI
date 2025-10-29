@@ -52,9 +52,8 @@ function* handleLogin(action) {
 // 🔹 Worker Saga — Register
 function* handleRegister(action) {
   try {
-    const { payload } = action.payload;
-    const data = yield call(registerUserApi, payload);
-
+    const formData = action.payload;
+    const data = yield call(registerUserApi, formData);
     yield put(registerSuccess(data));
     toast.success("Registration successful!");
   } catch (error) {
@@ -62,7 +61,7 @@ function* handleRegister(action) {
       error?.response?.data?.message ||
       error.message ||
       "Registration failed.";
-    yield put(registerFailure(message));
+    yield put(registerFailure(message)); 
     toast.error(message);
   }
 }
