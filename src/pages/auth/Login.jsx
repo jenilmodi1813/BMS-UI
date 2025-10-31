@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import toast, { Toaster } from "react-hot-toast";
-import { loginRequest } from "../../redux/auth/slice";
+import { loginRequest } from "../../redux/auth/auth.slice";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -37,20 +37,18 @@ const Login = () => {
     );
   };
 
-  // ✅ Handle redirect and toast after successful login
   useEffect(() => {
     if (isAuthenticated && user) {
       toast.success("Login successful! Redirecting...");
 
       setTimeout(() => {
-        if (user.status === "PENDING") navigate("/kyc-verification");
+        if (user.status === "PENDING") navigate("/profile");
         else if (user.status === "ACTIVE") navigate("/dashboard");
         else navigate("/account-pending");
       }, 1000);
     }
   }, [isAuthenticated, user, navigate]);
 
-  // ✅ Show toast for login failure
   useEffect(() => {
     if (error) {
       toast.error(error);

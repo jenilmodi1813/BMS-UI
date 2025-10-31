@@ -505,7 +505,7 @@ const DashBoard = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col items-center py-8 px-4">
       {/* Header */}
       <h1 className="text-3xl font-semibold text-blue-500 mb-6 text-center">
-        Welcome, {user?.firstName || "User"}!
+        Welcome, {profile?.firstName || "User"}!
       </h1>
 
       {/* Account Summary */}
