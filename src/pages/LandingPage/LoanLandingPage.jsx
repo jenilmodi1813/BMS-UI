@@ -1,6 +1,4 @@
-import React from "react";
 import { Link } from "react-router-dom";
-import Footer from "../../components/Footer/Footer";
 
 const LoanLandingPage = () => {
   return (
@@ -13,12 +11,7 @@ const LoanLandingPage = () => {
         <p className="text-lg md:text-xl text-blue-600 mb-6 max-w-2xl">
           Explore our loan options and find the perfect solution for your financial needs. Fast, secure, and tailored for you.
         </p>
-        <Link
-          to="/loan/apply"
-          className="bg-blue-700 hover:bg-blue-800 text-white px-6 py-3 rounded-full font-semibold transition text-lg"
-        >
-          Apply Now
-        </Link>
+       
       </section>
 
       {/* Loan Options Section */}
@@ -93,9 +86,6 @@ const LoanLandingPage = () => {
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <Footer />
     </div>
   );
 };

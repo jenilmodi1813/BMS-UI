@@ -14,16 +14,18 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
+    // --- LOGIN FLOW ---
     loginRequest: (state) => {
       state.loading = true;
       state.error = null;
     },
     loginSuccess: (state, action) => {
+      const { customer, tokens } = action.payload;
       state.loading = false;
-      state.user = action.payload.customer;
-      state.accessToken = action.payload.tokens.accessToken;
-      state.refreshToken = action.payload.tokens.refreshToken;
-      state.tokenType = action.payload.tokens.tokenType;
+      state.user = customer;
+      state.accessToken = tokens?.accessToken || null;
+      state.refreshToken = tokens?.refreshToken || null;
+      state.tokenType = tokens?.tokenType || "Bearer";
       state.error = null;
       state.isAuthenticated = true;
     },
@@ -32,6 +34,7 @@ const authSlice = createSlice({
       state.error = action.payload;
     },
 
+    // --- REGISTER FLOW ---
     registerRequest: (state) => {
       state.loading = true;
       state.error = null;
@@ -45,16 +48,10 @@ const authSlice = createSlice({
       state.error = action.payload;
     },
 
-    logout: (state) => {
-      state.user = null;
-      state.accessToken = null;
-      state.refreshToken = null;
-      state.tokenType = null;
-      state.error = null;
-      state.loading = false;
-      state.isAuthenticated = false;
-    },
+    // --- LOGOUT ---
+    logout: () => initialState, // clean reset (Redux Persist will rehydrate empty)
 
+    // --- UTILITY ---
     clearError: (state) => {
       state.error = null;
     },

@@ -6,8 +6,8 @@ import {
   registerRequest,
   registerSuccess,
   registerFailure,
-} from "./slice";
-import { loginUserApi, registerUserApi } from "./service";
+} from "./auth.slice";
+import { loginUserApi, registerUserApi } from "./auth.service";
 import toast from "react-hot-toast";
 
 // 🔹 Worker Saga — Login

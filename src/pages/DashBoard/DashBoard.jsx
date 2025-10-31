@@ -185,11 +185,20 @@ const DashBoard = () => {
 
   // State for recent transactions
   const [transactions, setTransactions] = useState([]);
+  const [profile, setProfile] = useState(null);
 
   // Loading state
   const [loading, setLoading] = useState(true);
 
-  const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081/api/v1/";
+  const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1/";
+
+
+    useEffect(() => {
+      const data = JSON.parse(localStorage.getItem("auth"));
+      if (data && data.customer) {
+        setProfile(data.customer);
+      }
+    }, []);
 
   useEffect(() => {
     const fetchAccountData = async () => {
@@ -231,7 +240,7 @@ const DashBoard = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col items-center py-8 px-4">
       {/* Header */}
       <h1 className="text-3xl font-semibold text-blue-500 mb-6 text-center">
-        Welcome, {user?.firstName || "User"}!
+        Welcome, {profile?.firstName || "User"}!
       </h1>
 
       {/* Account Summary */}

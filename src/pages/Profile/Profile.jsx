@@ -1,21 +1,30 @@
 import React, { useState, useEffect } from "react";
 import { FaEdit, FaSave } from "react-icons/fa";
 import axios from "axios";
+import { useSelector } from "react-redux";
+
 
 const UserProfile = () => {
   const [profile, setProfile] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [updatedProfile, setUpdatedProfile] = useState({});
-  const API_BASE = "http://localhost:8081/api/v1";
+  const API_BASE = "http://localhost:8080/api/v1";
+  const { accessToken } = useSelector((state) => state.auth);
 
   // Fetch customer from localStorage
   useEffect(() => {
-    const data = JSON.parse(localStorage.getItem("user"));
+    const data = JSON.parse(localStorage.getItem("auth"));
     if (data && data.customer) {
       setProfile(data.customer);
       setUpdatedProfile(data.customer);
     }
   }, []);
+
+
+
+  console.log("Profile Data:", profile);
+  console.log("accessToken:", accessToken);
+  
 
   const handleChange = (e) => {
     setUpdatedProfile({ ...updatedProfile, [e.target.name]: e.target.value });
@@ -62,12 +71,12 @@ const UserProfile = () => {
       <div className="bg-white shadow-lg rounded-2xl p-6 w-full max-w-md border border-gray-100 mb-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-gray-700">Profile Details</h2>
-          <button
+          {/* <button
             onClick={() => setEditMode(!editMode)}
             className="flex items-center gap-2 text-blue-600 hover:text-blue-800"
           >
             {editMode ? "Cancel" : <FaEdit />} {!editMode && "Edit"}
-          </button>
+          </button> */}
         </div>
 
         {[

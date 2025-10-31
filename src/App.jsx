@@ -1,19 +1,14 @@
 import React, { useEffect } from "react";
-import {
-  Routes,
-  Route,
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { loginSuccess, logout as reduxLogout } from "./redux/auth/slice";
+import { loginSuccess, logout as reduxLogout } from "./redux/auth/auth.slice";
 import { Toaster } from "react-hot-toast";
 import "./App.css";
 
 // Components
 import Navbar from "./components/Navbar/NavBar";
 import Footer from "./components/Footer/Footer";
-import LoanBar from "./components/Loan/LoanBar";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 // Pages
 import LandingPage from "./pages/LandingPage/LandingPage";
@@ -26,12 +21,13 @@ import Transfer from "./components/Transfer/Transfer";
 
 // Loan Pages
 import LoanLandingPage from "./pages/LandingPage/LoanLandingPage";
-import LoanApplication from "./pages/Loan/LoanApplication";
+import LoanHistory from "./pages/Loan/LoanHistory";
+import LoanStatus from "./pages/Loan/LoanStatus";
 import HomeLoan from "./pages/LoanType/HomeLoan";
-import CarLoan from "./pages/LoanType/CarLoan";
 import EducationLoan from "./pages/LoanType/EducationLoan";
+import SupportPage from "./pages/support/SupportPage";
+import CarLoan from "./pages/LoanType/CarLoan.jsx";
 
-// Logout Component
 const Logout = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -46,41 +42,88 @@ const Logout = () => {
 };
 
 const AppContent = () => {
-  const location = useLocation();
-  const isLoanPage = location.pathname.startsWith("/loan");
-
   return (
     <>
-      {isLoanPage ? <LoanBar /> : <Navbar />}
+      <Navbar />
       <div className="flex-grow">
         <Routes>
+          {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/signUp" element={<SignUp />} />
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/dashboard" element={<DashBoard />} />
-          <Route path="/transfer" element={<Transfer />} />
-          <Route path="/profile" element={<Profile />} />
-
-          {/* Loan Routes */}
           <Route path="/loan" element={<LoanLandingPage />} />
-          <Route path="/loan/apply" element={<LoanApplication />} />
           <Route path="/loan/apply/home" element={<HomeLoan />} />
           <Route path="/loan/apply/car" element={<CarLoan />} />
           <Route path="/loan/apply/education" element={<EducationLoan />} />
+
+          {/* Protected Routes */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashBoard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/transfer"
+            element={
+              <ProtectedRoute>
+                <Transfer />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/loan-history"
+            element={
+              <ProtectedRoute>
+                <LoanHistory />
+              </ProtectedRoute>
+            }
+          />
+
           <Route
             path="/loan/status"
             element={
-              <h1 className="text-center mt-10 text-2xl font-semibold">
-                Loan Status Page
-              </h1>
+              <ProtectedRoute>
+                <LoanStatus />
+              </ProtectedRoute>
             }
           />
-          <Route path="/logout" element={<Logout />} />
+
+          <Route
+            path="/loan/support"
+            element={
+              <ProtectedRoute>
+                <SupportPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/logout"
+            element={
+              <ProtectedRoute>
+                <Logout />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
         <Toaster />
       </div>
-      {!isLoanPage && <Footer />}
+      <Footer />
     </>
   );
 };
