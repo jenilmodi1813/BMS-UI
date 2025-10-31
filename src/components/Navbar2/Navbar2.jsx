@@ -114,7 +114,7 @@ const Navbar2 = ({ setIsLogin }) => {
           Dashboard
         </Link>
         <Link
-          to="/accounts"
+          to="/account/create"
           className="text-gray-700 font-medium hover:text-blue-700 transition"
         >
           Accounts

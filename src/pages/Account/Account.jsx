@@ -1,136 +1,616 @@
-import React, { useState, useEffect } from "react";
-import { FaMoneyBillWave, FaExchangeAlt, FaPlus } from "react-icons/fa";
+// import React, { useEffect, useState } from "react";
+// import axios from "axios";
+// import { motion } from "framer-motion";
+// import { FaSearch, FaTrashAlt, FaPlus, FaMoneyBillWave } from "react-icons/fa";
+// import toast from "react-hot-toast";
+// import AccountForm from "../../components/Account/AccountForm";
+
+// const Account = () => {
+//   const [accounts, setAccounts] = useState([]);
+//   const [search, setSearch] = useState("");
+//   const [showForm, setShowForm] = useState(false);
+//   const [loading, setLoading] = useState(false);
+
+//   const BASE_URL =
+//     import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
+//   const cifNumber =
+//     JSON.parse(localStorage.getItem("auth"))?.customer?.cifNumber || "";
+
+//   // Fetch accounts
+//   const fetchAccounts = async () => {
+//     if (!cifNumber) return;
+//     try {
+//       setLoading(true);
+//       const { data } = await axios.get(`${BASE_URL}/accounts/cif/${cifNumber}`);
+//       setAccounts(data);
+//     } catch (err) {
+//       toast.error("Failed to fetch accounts");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   useEffect(() => {
+//     fetchAccounts();
+//   }, []);
+
+//   // Delete account
+//   const handleDelete = async (id) => {
+//     if (!window.confirm("Are you sure you want to delete this account?")) return;
+//     try {
+//       await axios.delete(`${BASE_URL}/accounts/${id}`);
+//       toast.success("Account deleted successfully!");
+//       fetchAccounts();
+//     } catch (err) {
+//       toast.error("Failed to delete account");
+//     }
+//   };
+
+//   // Filter by account number
+//   const filteredAccounts = accounts.filter((acc) =>
+//     acc.accountNumber.toLowerCase().includes(search.toLowerCase())
+//   );
+
+//   return (
+//     <motion.div
+//       className="p-6 bg-gray-50 min-h-screen"
+//       initial={{ opacity: 0 }}
+//       animate={{ opacity: 1 }}
+//     >
+//       {/* Header */}
+//       <div className="flex justify-between items-center mb-6">
+//         <h2 className="text-3xl font-semibold text-gray-800">My Accounts</h2>
+//         <button
+//           onClick={() => setShowForm(!showForm)}
+//           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition-all"
+//         >
+//           <FaPlus /> {showForm ? "Close Form" : "Open New Account"}
+//         </button>
+//       </div>
+
+//       {/* Form */}
+//       {showForm && (
+//         <motion.div
+//           className="bg-white rounded-xl shadow-lg p-6 mb-6"
+//           initial={{ opacity: 0, y: -20 }}
+//           animate={{ opacity: 1, y: 0 }}
+//         >
+//           <AccountForm
+//             onSuccess={() => {
+//               fetchAccounts();
+//               setShowForm(false);
+//             }}
+//           />
+//         </motion.div>
+//       )}
+
+//       {/* Search */}
+//       <div className="flex items-center bg-white shadow-md rounded-lg p-3 mb-6">
+//         <FaSearch className="text-gray-400 mr-2" />
+//         <input
+//           type="text"
+//           placeholder="Search by Account Number..."
+//           value={search}
+//           onChange={(e) => setSearch(e.target.value)}
+//           className="flex-1 outline-none text-gray-700"
+//         />
+//       </div>
+
+//       {/* Accounts */}
+//       {loading ? (
+//         <p className="text-center text-gray-500">Loading accounts...</p>
+//       ) : filteredAccounts.length > 0 ? (
+//         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+//           {filteredAccounts.map((acc) => (
+//             <motion.div
+//               key={acc.id}
+//               className="bg-white shadow-lg rounded-2xl p-5 border border-gray-100 hover:shadow-2xl transition-all"
+//               whileHover={{ scale: 1.02 }}
+//             >
+//               <div className="flex justify-between items-center mb-2">
+//                 <h3 className="text-xl font-semibold text-gray-800">
+//                   {acc.accountType} ACCOUNT
+//                 </h3>
+//                 <span
+//                   className={`text-sm font-medium px-3 py-1 rounded-full ${
+//                     acc.status === "ACTIVE"
+//                       ? "bg-green-100 text-green-700"
+//                       : "bg-yellow-100 text-yellow-700"
+//                   }`}
+//                 >
+//                   {acc.status}
+//                 </span>
+//               </div>
+
+//               <p className="text-gray-600 text-sm mb-2">
+//                 Account No: <span className="font-medium">{acc.accountNumber}</span>
+//               </p>
+//               <p className="text-gray-600 text-sm mb-2">
+//                 CIF: <span className="font-medium">{acc.cifNumber}</span>
+//               </p>
+//               <p className="text-gray-600 text-sm mb-2">
+//                 Balance: <span className="font-semibold">₹{acc.balance}</span>
+//               </p>
+//               <p className="text-gray-600 text-sm mb-2">
+//                 KYC ID: <span className="font-medium">{acc.kycId}</span>
+//               </p>
+
+//               {/* Savings Account */}
+//               {acc.savingsDetails && (
+//                 <div className="mt-3 text-sm text-gray-700">
+//                   <p>Interest Rate: {acc.savingsDetails.interestRate}%</p>
+//                   <p>
+//                     Withdrawal Limit: {acc.savingsDetails.withdrawalLimitPerMonth}/month
+//                   </p>
+//                   <p>
+//                     Cheque Book:{" "}
+//                     {acc.savingsDetails.chequeBookAvailable
+//                       ? "Available"
+//                       : "Not Available"}
+//                   </p>
+//                 </div>
+//               )}
+
+//               {/* Current Account */}
+//               {acc.currentDetails && (
+//                 <div className="mt-3 text-sm text-gray-700">
+//                   <p>Business: {acc.currentDetails.businessName}</p>
+//                   <p>Overdraft Limit: ₹{acc.currentDetails.overdraftLimit}</p>
+//                   <p>Service Charge: ₹{acc.currentDetails.monthlyServiceCharge}</p>
+//                   <p>
+//                     Overdraft Facility:{" "}
+//                     {acc.currentDetails.hasOverdraftFacility ? "Yes" : "No"}
+//                   </p>
+//                 </div>
+//               )}
+
+//               {/* Buttons */}
+//               <div className="flex justify-between mt-5">
+//                 <button
+//                   onClick={() => toast.info(`Balance: ₹${acc.balance}`)}
+//                   className="flex items-center gap-2 bg-green-100 hover:bg-green-200 text-green-700 px-3 py-2 rounded-lg transition-all"
+//                 >
+//                   <FaMoneyBillWave /> Check Balance
+//                 </button>
+//                 <button
+//                   onClick={() => handleDelete(acc.id)}
+//                   className="flex items-center gap-2 bg-red-100 hover:bg-red-200 text-red-700 px-3 py-2 rounded-lg transition-all"
+//                 >
+//                   <FaTrashAlt /> Delete
+//                 </button>
+//               </div>
+//             </motion.div>
+//           ))}
+//         </div>
+//       ) : (
+//         <p className="text-center text-gray-500">No accounts found.</p>
+//       )}
+//     </motion.div>
+//   );
+// };
+
+// export default Account;
+
+// import React, { useEffect, useState } from "react";
+// import axios from "axios";
+// import { motion } from "framer-motion";
+// import { FaSearch, FaPlus, FaMoneyBillWave } from "react-icons/fa";
+// import toast from "react-hot-toast";
+// import AccountForm from "../../components/Account/AccountForm";
+
+// const Account = () => {
+//   const [accounts, setAccounts] = useState([]);
+//   const [search, setSearch] = useState("");
+//   const [showForm, setShowForm] = useState(false);
+//   const [loading, setLoading] = useState(false);
+//   const [visibleBalances, setVisibleBalances] = useState({}); // {accountId: balance}
+
+//   const BASE_URL =
+//     import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
+//   const cifNumber =
+//     JSON.parse(localStorage.getItem("auth"))?.customer?.cifNumber || "";
+
+//   // Fetch accounts
+//   const fetchAccounts = async () => {
+//     if (!cifNumber) return;
+//     try {
+//       setLoading(true);
+//       const { data } = await axios.get(`${BASE_URL}/accounts/cif/${cifNumber}`);
+//       setAccounts(data);
+//     } catch (err) {
+//       toast.error("Failed to fetch accounts");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   useEffect(() => {
+//     fetchAccounts();
+//   }, []);
+
+//   // Handle balance check
+//   const handleCheckBalance = async (accId) => {
+//     const pin = prompt("Enter your 4-digit PIN:");
+//     if (!pin || pin.length !== 4 || isNaN(pin)) {
+//       toast.error("Please enter a valid 4-digit PIN");
+//       return;
+//     }
+
+//     try {
+//       const { data } = await axios.get(`${BASE_URL}/accounts/pin/${pin}/balance`);
+//       setVisibleBalances((prev) => ({ ...prev, [accId]: data }));
+//       toast.success("Balance retrieved successfully!");
+//     } catch (err) {
+//       toast.error("Invalid PIN or failed to fetch balance");
+//     }
+//   };
+
+//   // Filter accounts
+//   const filteredAccounts = accounts.filter((acc) =>
+//     acc.accountNumber.toLowerCase().includes(search.toLowerCase())
+//   );
+
+//   return (
+//     <motion.div
+//       className="p-6 bg-gray-50 min-h-screen"
+//       initial={{ opacity: 0 }}
+//       animate={{ opacity: 1 }}
+//     >
+//       {/* Header */}
+//       <div className="flex justify-between items-center mb-6">
+//         <h2 className="text-3xl font-semibold text-gray-800">My Accounts</h2>
+//         <button
+//           onClick={() => setShowForm(!showForm)}
+//           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition-all"
+//         >
+//           <FaPlus /> {showForm ? "Close Form" : "Open New Account"}
+//         </button>
+//       </div>
+
+//       {/* Form */}
+//       {showForm && (
+//         <motion.div
+//           className="bg-white rounded-xl shadow-lg p-6 mb-6"
+//           initial={{ opacity: 0, y: -20 }}
+//           animate={{ opacity: 1, y: 0 }}
+//         >
+//           <AccountForm
+//             onSuccess={() => {
+//               fetchAccounts();
+//               setShowForm(false);
+//             }}
+//           />
+//         </motion.div>
+//       )}
+
+//       {/* Search */}
+//       <div className="flex items-center bg-white shadow-md rounded-lg p-3 mb-6">
+//         <FaSearch className="text-gray-400 mr-2" />
+//         <input
+//           type="text"
+//           placeholder="Search by Account Number..."
+//           value={search}
+//           onChange={(e) => setSearch(e.target.value)}
+//           className="flex-1 outline-none text-gray-700"
+//         />
+//       </div>
+
+//       {/* Accounts */}
+//       {loading ? (
+//         <p className="text-center text-gray-500">Loading accounts...</p>
+//       ) : filteredAccounts.length > 0 ? (
+//         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+//           {filteredAccounts.map((acc) => (
+//             <motion.div
+//               key={acc.id}
+//               className="bg-white shadow-lg rounded-2xl p-5 border border-gray-100 hover:shadow-2xl transition-all"
+//               whileHover={{ scale: 1.02 }}
+//             >
+//               <div className="flex justify-between items-center mb-2">
+//                 <h3 className="text-xl font-semibold text-gray-800">
+//                   {acc.accountType} ACCOUNT
+//                 </h3>
+//                 <span
+//                   className={`text-sm font-medium px-3 py-1 rounded-full ${
+//                     acc.status === "ACTIVE"
+//                       ? "bg-green-100 text-green-700"
+//                       : "bg-yellow-100 text-yellow-700"
+//                   }`}
+//                 >
+//                   {acc.status}
+//                 </span>
+//               </div>
+
+//               <p className="text-gray-600 text-sm mb-2">
+//                 Account No:{" "}
+//                 <span className="font-medium">{acc.accountNumber}</span>
+//               </p>
+//               <p className="text-gray-600 text-sm mb-2">
+//                 CIF: <span className="font-medium">{acc.cifNumber}</span>
+//               </p>
+
+//               {/* Show balance if retrieved */}
+//               {visibleBalances[acc.id] ? (
+//                 <p className="text-gray-700 text-base font-semibold mb-2">
+//                   Balance: ₹{visibleBalances[acc.id]}
+//                 </p>
+//               ) : (
+//                 <p className="text-gray-500 text-sm mb-2 italic">
+//                   Balance hidden (check using PIN)
+//                 </p>
+//               )}
+
+//               {/* Savings Account */}
+//               {acc.savingsDetails && (
+//                 <div className="mt-3 text-sm text-gray-700">
+//                   <p>Interest Rate: {acc.savingsDetails.interestRate}%</p>
+//                   <p>
+//                     Withdrawal Limit:{" "}
+//                     {acc.savingsDetails.withdrawalLimitPerMonth}/month
+//                   </p>
+//                   <p>
+//                     Cheque Book:{" "}
+//                     {acc.savingsDetails.chequeBookAvailable
+//                       ? "Available"
+//                       : "Not Available"}
+//                   </p>
+//                 </div>
+//               )}
+
+//               {/* Current Account */}
+//               {acc.currentDetails && (
+//                 <div className="mt-3 text-sm text-gray-700">
+//                   <p>Business: {acc.currentDetails.businessName}</p>
+//                   <p>Overdraft Limit: ₹{acc.currentDetails.overdraftLimit}</p>
+//                   <p>Service Charge: ₹{acc.currentDetails.monthlyServiceCharge}</p>
+//                   <p>
+//                     Overdraft Facility:{" "}
+//                     {acc.currentDetails.hasOverdraftFacility ? "Yes" : "No"}
+//                   </p>
+//                 </div>
+//               )}
+
+//               {/* Buttons */}
+//               <div className="flex justify-center mt-5">
+//                 <button
+//                   onClick={() => handleCheckBalance(acc.id)}
+//                   className="flex items-center gap-2 bg-green-100 hover:bg-green-200 text-green-700 px-4 py-2 rounded-lg transition-all"
+//                 >
+//                   <FaMoneyBillWave /> Check Balance
+//                 </button>
+//               </div>
+//             </motion.div>
+//           ))}
+//         </div>
+//       ) : (
+//         <p className="text-center text-gray-500">No accounts found.</p>
+//       )}
+//     </motion.div>
+//   );
+// };
+
+// export default Account;
+
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { motion } from "framer-motion";
+import { FaSearch, FaPlus, FaMoneyBillWave, FaKey } from "react-icons/fa";
+import toast from "react-hot-toast";
+import AccountForm from "../../components/Account/AccountForm";
+import ChangePinForm from "../../components/Account/ChangePinForm";
 
 const Account = () => {
-  // Mock data for the logged-in user's account
-  const [account, setAccount] = useState({
-    type: "Savings",
-    number: "XXXX-XXXX-1234",
-    balance: 54320,
-    status: "Active",
-  });
+  const [accounts, setAccounts] = useState([]);
+  const [search, setSearch] = useState("");
+  const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [visibleBalances, setVisibleBalances] = useState({});
+  const [selectedAccountForPin, setSelectedAccountForPin] = useState(null); // for change pin popup
 
-  const [transactions, setTransactions] = useState([
-    {
-      date: "2025-10-11",
-      description: "ATM Withdrawal",
-      type: "Debit",
-      amount: -2000,
-      balance: 54320,
-    },
-    {
-      date: "2025-10-10",
-      description: "Salary Credit",
-      type: "Credit",
-      amount: 40000,
-      balance: 56320,
-    },
-    {
-      date: "2025-10-09",
-      description: "Electricity Bill",
-      type: "Debit",
-      amount: -1200,
-      balance: 16320,
-    },
-  ]);
+  const BASE_URL =
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
+  const cifNumber =
+    JSON.parse(localStorage.getItem("auth"))?.customer?.cifNumber || "";
 
-  // You can replace this with an API call to fetch user's account data
+  // Fetch accounts
+  const fetchAccounts = async () => {
+    if (!cifNumber) return;
+    try {
+      setLoading(true);
+      const { data } = await axios.get(`${BASE_URL}/accounts/cif/${cifNumber}`);
+      setAccounts(data);
+    } catch (err) {
+      toast.error("Failed to fetch accounts");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    // Example:
-    // axios.get('/api/v1/accounts/me').then(res => setAccount(res.data))
+    fetchAccounts();
   }, []);
 
+  // Handle balance check
+  const handleCheckBalance = async (accId) => {
+    const pin = prompt("Enter your 4-digit PIN:");
+    if (!pin || pin.length !== 4 || isNaN(pin)) {
+      toast.error("Please enter a valid 4-digit PIN");
+      return;
+    }
+
+    try {
+      const { data } = await axios.get(`${BASE_URL}/accounts/pin/${pin}/balance`);
+      setVisibleBalances((prev) => ({ ...prev, [accId]: data }));
+      toast.success("Balance retrieved successfully!");
+    } catch (err) {
+      toast.error("Invalid PIN or failed to fetch balance");
+    }
+  };
+
+  // Filter accounts
+  const filteredAccounts = accounts.filter((acc) =>
+    acc.accountNumber.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <motion.div
+      className="p-6 bg-gray-50 min-h-screen"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
       {/* Header */}
-      <h1 className="text-3xl font-semibold text-blue-500 mb-6 text-center">
-        My Account
-      </h1>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-3xl font-semibold text-gray-800">My Accounts</h2>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition-all"
+        >
+          <FaPlus /> {showForm ? "Close Form" : "Open New Account"}
+        </button>
+      </div>
 
-      {/* Account Info */}
-      <div className="bg-white shadow-lg rounded-2xl p-6 max-w-2xl mx-auto mb-8 border border-gray-100">
-        <h2 className="text-xl font-semibold text-gray-700 mb-4">Account Details</h2>
-        <div className="grid grid-cols-1 gap-4 text-gray-800">
-          <div className="bg-blue-50 rounded-xl p-4 shadow-sm">
-            <p className="text-sm text-gray-600">Account Number</p>
-            <h3 className="text-lg font-semibold mt-1">{account.number}</h3>
-          </div>
+      {/* Form */}
+      {showForm && (
+        <motion.div
+          className="bg-white rounded-xl shadow-lg p-6 mb-6"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <AccountForm
+            onSuccess={() => {
+              fetchAccounts();
+              setShowForm(false);
+            }}
+          />
+        </motion.div>
+      )}
 
-          <div className="bg-green-50 rounded-xl p-4 shadow-sm">
-            <p className="text-sm text-gray-600">Available Balance</p>
-            <h3 className="text-lg font-semibold mt-1">₹ {account.balance.toLocaleString()}</h3>
-          </div>
+      {/* Search */}
+      <div className="flex items-center bg-white shadow-md rounded-lg p-3 mb-6">
+        <FaSearch className="text-gray-400 mr-2" />
+        <input
+          type="text"
+          placeholder="Search by Account Number..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="flex-1 outline-none text-gray-700"
+        />
+      </div>
 
-          <div className="bg-yellow-50 rounded-xl p-4 shadow-sm">
-            <p className="text-sm text-gray-600">Account Type</p>
-            <h3 className="text-lg font-semibold mt-1">{account.type}</h3>
-          </div>
-
-          <div className="bg-gray-50 rounded-xl p-4 shadow-sm">
-            <p className="text-sm text-gray-600">Status</p>
-            <h3
-              className={`text-lg font-semibold mt-1 ${
-                account.status === "Active" ? "text-green-600" : "text-red-600"
-              }`}
+      {/* Accounts */}
+      {loading ? (
+        <p className="text-center text-gray-500">Loading accounts...</p>
+      ) : filteredAccounts.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {filteredAccounts.map((acc) => (
+            <motion.div
+              key={acc.id}
+              className="bg-white shadow-lg rounded-2xl p-5 border border-gray-100 hover:shadow-2xl transition-all"
+              whileHover={{ scale: 1.02 }}
             >
-              {account.status}
-            </h3>
-          </div>
-        </div>
-      </div>
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="text-xl font-semibold text-gray-800">
+                  {acc.accountType} ACCOUNT
+                </h3>
+                <span
+                  className={`text-sm font-medium px-3 py-1 rounded-full ${
+                    acc.status === "ACTIVE"
+                      ? "bg-green-100 text-green-700"
+                      : "bg-yellow-100 text-yellow-700"
+                  }`}
+                >
+                  {acc.status}
+                </span>
+              </div>
 
-      {/* Quick Actions */}
-      <div className="bg-white shadow-lg rounded-2xl p-6 mb-8 max-w-2xl mx-auto border border-gray-100">
-        <h2 className="text-xl font-semibold text-gray-700 mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-3 gap-4">
-          <button className="flex items-center gap-2 justify-center py-3 px-4 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition">
-            <FaMoneyBillWave /> Transfer Money
-          </button>
-          <button className="flex items-center gap-2 justify-center py-3 px-4 rounded-xl bg-green-600 text-white hover:bg-green-700 transition">
-            <FaPlus /> Deposit Funds
-          </button>
-          <button className="flex items-center gap-2 justify-center py-3 px-4 rounded-xl bg-orange-600 text-white hover:bg-orange-700 transition">
-            <FaExchangeAlt /> Withdraw Funds
-          </button>
-        </div>
-      </div>
+              <p className="text-gray-600 text-sm mb-2">
+                Account No:{" "}
+                <span className="font-medium">{acc.accountNumber}</span>
+              </p>
+              <p className="text-gray-600 text-sm mb-2">
+                CIF: <span className="font-medium">{acc.cifNumber}</span>
+              </p>
 
-      {/* Transactions Table */}
-      <div className="bg-white shadow-lg rounded-2xl p-6 max-w-2xl mx-auto border border-gray-100">
-        <h2 className="text-xl font-semibold text-gray-700 mb-4">Recent Transactions</h2>
-        <div className="overflow-x-auto">
-          <table className="min-w-full table-auto border-collapse">
-            <thead>
-              <tr className="bg-gray-100 text-gray-700">
-                <th className="py-2 px-4 text-left">Date</th>
-                <th className="py-2 px-4 text-left">Description</th>
-                <th className="py-2 px-4 text-left">Type</th>
-                <th className="py-2 px-4 text-right">Amount</th>
-                <th className="py-2 px-4 text-right">Balance</th>
-              </tr>
-            </thead>
-            <tbody>
-              {transactions.map((tx, idx) => (
-                <tr key={idx} className="border-t text-gray-800">
-                  <td className="py-2 px-4">{tx.date}</td>
-                  <td className="py-2 px-4">{tx.description}</td>
-                  <td className="py-2 px-4">{tx.type}</td>
-                  <td
-                    className={`py-2 px-4 text-right font-medium ${
-                      tx.type === "Credit" ? "text-green-600" : "text-red-600"
-                    }`}
-                  >
-                    {tx.type === "Credit" ? "+" : "-"} ₹{Math.abs(tx.amount).toLocaleString()}
-                  </td>
-                  <td className="py-2 px-4 text-right">₹ {tx.balance.toLocaleString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+              {/* Show balance if retrieved */}
+              {visibleBalances[acc.id] ? (
+                <p className="text-gray-700 text-base font-semibold mb-2">
+                  Balance: ₹{visibleBalances[acc.id]}
+                </p>
+              ) : (
+                <p className="text-gray-500 text-sm mb-2 italic">
+                  Balance hidden (check using PIN)
+                </p>
+              )}
+
+              {/* Savings Account */}
+              {acc.savingsDetails && (
+                <div className="mt-3 text-sm text-gray-700">
+                  <p>Interest Rate: {acc.savingsDetails.interestRate}%</p>
+                  <p>
+                    Withdrawal Limit:{" "}
+                    {acc.savingsDetails.withdrawalLimitPerMonth}/month
+                  </p>
+                  <p>
+                    Cheque Book:{" "}
+                    {acc.savingsDetails.chequeBookAvailable
+                      ? "Available"
+                      : "Not Available"}
+                  </p>
+                </div>
+              )}
+
+              {/* Current Account */}
+              {acc.currentDetails && (
+                <div className="mt-3 text-sm text-gray-700">
+                  <p>Business: {acc.currentDetails.businessName}</p>
+                  <p>Overdraft Limit: ₹{acc.currentDetails.overdraftLimit}</p>
+                  <p>
+                    Service Charge: ₹{acc.currentDetails.monthlyServiceCharge}
+                  </p>
+                  <p>
+                    Overdraft Facility:{" "}
+                    {acc.currentDetails.hasOverdraftFacility ? "Yes" : "No"}
+                  </p>
+                </div>
+              )}
+
+              {/* Buttons */}
+              <div className="flex justify-center gap-3 mt-5">
+                <button
+                  onClick={() => handleCheckBalance(acc.id)}
+                  className="flex items-center gap-2 bg-green-100 hover:bg-green-200 text-green-700 px-4 py-2 rounded-lg transition-all"
+                >
+                  <FaMoneyBillWave /> Check Balance
+                </button>
+
+                <button
+                  onClick={() => setSelectedAccountForPin(acc.accountNumber)}
+                  className="flex items-center gap-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 px-4 py-2 rounded-lg transition-all"
+                >
+                  <FaKey /> Change PIN
+                </button>
+              </div>
+            </motion.div>
+          ))}
         </div>
-      </div>
-    </div>
+      ) : (
+        <p className="text-center text-gray-500">No accounts found.</p>
+      )}
+
+      {/* Change PIN Modal */}
+      {selectedAccountForPin && (
+        <ChangePinForm
+          accountNumber={selectedAccountForPin}
+          onSuccess={() => {
+            setSelectedAccountForPin(null);
+            fetchAccounts();
+          }}
+          onCancel={() => setSelectedAccountForPin(null)}
+        />
+      )}
+    </motion.div>
   );
 };
 
 export default Account;
+

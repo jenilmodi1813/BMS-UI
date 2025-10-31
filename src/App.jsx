@@ -30,6 +30,9 @@ import LoanApplication from "./pages/Loan/LoanApplication";
 import HomeLoan from "./pages/LoanType/HomeLoan";
 import CarLoan from "./pages/LoanType/CarLoan";
 import EducationLoan from "./pages/LoanType/EducationLoan";
+import AccountForm from "./components/Account/AccountForm";
+import Account from "./pages/Account/Account";
+
 
 // Logout Component
 const Logout = () => {
@@ -61,6 +64,10 @@ const AppContent = () => {
           <Route path="/dashboard" element={<DashBoard />} />
           <Route path="/transfer" element={<Transfer />} />
           <Route path="/profile" element={<Profile />} />
+          
+          {/* Account Routes */}
+          <Route path="/account" element={<Account />} />
+
 
           {/* Loan Routes */}
           <Route path="/loan" element={<LoanLandingPage />} />
