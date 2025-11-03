@@ -366,6 +366,7 @@ const DashBoard = () => {
 
   const user = maybeUser || authFromStorage?.customer || null;
   const token = authFromStorage?.tokens?.accessToken || "";
+  // const [profile, setProfile] = useState(null);
 
   const [accounts, setAccounts] = useState([]);
   const [selectedAccount, setSelectedAccount] = useState(null);
@@ -387,6 +388,15 @@ const DashBoard = () => {
     authFromStorage?.customer?.cifNumber || user?.cifNumber || null;
   const userId =
     authFromStorage?.customer?.customerId || user?.customerId || user?.id || null;
+
+      // useEffect(() => {
+      //   const data = JSON.parse(localStorage.getItem("auth"));
+      //   if (data && data.customer) {
+      //     setProfile(data.customer);
+      //     setUpdatedProfile(data.customer);
+      //   }
+      // }, []);
+    
 
   useEffect(() => {
     const fetchAccounts = async () => {
@@ -505,7 +515,7 @@ const DashBoard = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col items-center py-8 px-4">
       {/* Header */}
       <h1 className="text-3xl font-semibold text-blue-500 mb-6 text-center">
-        Welcome, {profile?.firstName || "User"}!
+        {/* Welcome, {profile?.firstName || "User"} */}
       </h1>
 
       {/* Account Summary */}

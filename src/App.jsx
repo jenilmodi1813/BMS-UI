@@ -15,7 +15,7 @@ import LandingPage from "./pages/LandingPage/LandingPage";
 import SignUp from "./pages/auth/SignUp";
 import Login from "./pages/auth/Login";
 import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
-import DashBoard from "./pages/DashBoard/DashBoard";
+import DashBoard from "./pages/DashBoard/DashBoard.jsx"
 import Profile from "./pages/Profile/Profile";
 import Transfer from "./components/Transfer/Transfer";
 
@@ -60,7 +60,7 @@ const AppContent = () => {
           <Route path="/profile" element={<Profile />} />
           
           {/* Account Routes */}
-          <Route path="/account" element={<Account />} />
+          <Route path="/accounts" element={<Account />} />
 
 
           {/* Loan Routes */}
