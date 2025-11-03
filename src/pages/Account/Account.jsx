@@ -405,7 +405,11 @@ const Account = () => {
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [visibleBalances, setVisibleBalances] = useState({});
-  const [selectedAccountForPin, setSelectedAccountForPin] = useState(null); // for change pin popup
+  const [selectedAccountForPin, setSelectedAccountForPin] = useState(null);
+
+  // For PIN Center Form
+  const [enteredPin, setEnteredPin] = useState("");
+  const [selectedAccountForBalance, setSelectedAccountForBalance] = useState(null);
 
   const BASE_URL =
     import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
@@ -430,18 +434,35 @@ const Account = () => {
     fetchAccounts();
   }, []);
 
-  // Handle balance check
-  const handleCheckBalance = async (accId) => {
-    const pin = prompt("Enter your 4-digit PIN:");
-    if (!pin || pin.length !== 4 || isNaN(pin)) {
+  // Open Center PIN Form
+  const handleCheckBalance = (accId) => {
+    if (selectedAccountForBalance === accId) {
+      setSelectedAccountForBalance(null);
+      setEnteredPin("");
+    } else {
+      setSelectedAccountForBalance(accId);
+      setEnteredPin("");
+    }
+  };
+
+  // Submit PIN
+  const submitPin = async (accId) => {
+    if (!enteredPin || enteredPin.length !== 4 || isNaN(enteredPin)) {
       toast.error("Please enter a valid 4-digit PIN");
       return;
     }
 
     try {
-      const { data } = await axios.get(`${BASE_URL}/accounts/pin/${pin}/balance`);
-      setVisibleBalances((prev) => ({ ...prev, [accId]: data }));
+      const { data } = await axios.get(
+        `${BASE_URL}/accounts/pin/${enteredPin}/balance`
+      );
+      setVisibleBalances((prev) => ({
+        ...prev,
+        [accId]: data,
+      }));
       toast.success("Balance retrieved successfully!");
+      setSelectedAccountForBalance(null);
+      setEnteredPin("");
     } catch (err) {
       toast.error("Invalid PIN or failed to fetch balance");
     }
@@ -449,12 +470,12 @@ const Account = () => {
 
   // Filter accounts
   const filteredAccounts = accounts.filter((acc) =>
-    acc.accountNumber.toLowerCase().includes(search.toLowerCase())
+    acc.accountNumber?.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
     <motion.div
-      className="p-6 bg-gray-50 min-h-screen"
+      className="p-6 bg-gray-50 min-h-screen relative"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
@@ -508,6 +529,7 @@ const Account = () => {
               className="bg-white shadow-lg rounded-2xl p-5 border border-gray-100 hover:shadow-2xl transition-all"
               whileHover={{ scale: 1.02 }}
             >
+              {/* Header */}
               <div className="flex justify-between items-center mb-2">
                 <h3 className="text-xl font-semibold text-gray-800">
                   {acc.accountType} ACCOUNT
@@ -523,6 +545,7 @@ const Account = () => {
                 </span>
               </div>
 
+              {/* Basic Info */}
               <p className="text-gray-600 text-sm mb-2">
                 Account No:{" "}
                 <span className="font-medium">{acc.accountNumber}</span>
@@ -531,7 +554,7 @@ const Account = () => {
                 CIF: <span className="font-medium">{acc.cifNumber}</span>
               </p>
 
-              {/* Show balance if retrieved */}
+              {/* Balance */}
               {visibleBalances[acc.id] ? (
                 <p className="text-gray-700 text-base font-semibold mb-2">
                   Balance: ₹{visibleBalances[acc.id]}
@@ -542,9 +565,47 @@ const Account = () => {
                 </p>
               )}
 
+              {/* Occupation & Income */}
+              <div className="mt-3 text-sm text-gray-700">
+                {acc.occupation && (
+                  <p>
+                    Occupation:{" "}
+                    <span className="font-medium">{acc.occupation}</span>
+                  </p>
+                )}
+                {acc.sourceOfIncome && (
+                  <p>
+                    Source of Income:{" "}
+                    <span className="font-medium">{acc.sourceOfIncome}</span>
+                  </p>
+                )}
+                {acc.grossAnnualIncome && (
+                  <p>
+                    Gross Annual Income: ₹
+                    <span className="font-medium">{acc.grossAnnualIncome}</span>
+                  </p>
+                )}
+              </div>
+
+              {/* Nominee Info */}
+              {(acc.nomineeName || acc.nomineeRelation) && (
+                <div className="mt-3 text-sm text-gray-700 border-t border-gray-200 pt-2">
+                  <p className="font-medium text-gray-800 mb-1">
+                    Nominee Details:
+                  </p>
+                  <p>Name: {acc.nomineeName}</p>
+                  <p>Relation: {acc.nomineeRelation}</p>
+                  {acc.nomineeAge && <p>Age: {acc.nomineeAge}</p>}
+                  {acc.nomineeContact && <p>Contact: {acc.nomineeContact}</p>}
+                </div>
+              )}
+
               {/* Savings Account */}
               {acc.savingsDetails && (
-                <div className="mt-3 text-sm text-gray-700">
+                <div className="mt-3 text-sm text-gray-700 border-t border-gray-200 pt-2">
+                  <p className="font-medium text-gray-800 mb-1">
+                    Savings Details:
+                  </p>
                   <p>Interest Rate: {acc.savingsDetails.interestRate}%</p>
                   <p>
                     Withdrawal Limit:{" "}
@@ -561,7 +622,10 @@ const Account = () => {
 
               {/* Current Account */}
               {acc.currentDetails && (
-                <div className="mt-3 text-sm text-gray-700">
+                <div className="mt-3 text-sm text-gray-700 border-t border-gray-200 pt-2">
+                  <p className="font-medium text-gray-800 mb-1">
+                    Current Details:
+                  </p>
                   <p>Business: {acc.currentDetails.businessName}</p>
                   <p>Overdraft Limit: ₹{acc.currentDetails.overdraftLimit}</p>
                   <p>
@@ -608,9 +672,54 @@ const Account = () => {
           onCancel={() => setSelectedAccountForPin(null)}
         />
       )}
+
+      {/* Center Fixed PIN Form */}
+      {selectedAccountForBalance && (
+        <motion.div
+          className="fixed inset-0  bg-opacity-40 flex items-center justify-center z-50"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <motion.div
+            className="bg-white rounded-2xl shadow-xl p-8 w-80 text-center relative"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+          >
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">
+              Enter Your 4-Digit PIN
+            </h3>
+
+            <input
+              type="password"
+              maxLength={4}
+              value={enteredPin}
+              onChange={(e) => setEnteredPin(e.target.value)}
+              className="w-full text-center text-xl border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-400 outline-none mb-6"
+              placeholder="••••"
+            />
+
+            <div className="flex justify-center gap-3">
+              <button
+                onClick={() => submitPin(selectedAccountForBalance)}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-all"
+              >
+                Submit
+              </button>
+              <button
+                onClick={() => {
+                  setSelectedAccountForBalance(null);
+                  setEnteredPin("");
+                }}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg transition-all"
+              >
+                Cancel
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
     </motion.div>
   );
 };
 
 export default Account;
-
