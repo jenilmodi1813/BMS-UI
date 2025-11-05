@@ -180,18 +180,23 @@ const AccountForm = ({ onSuccess }) => {
     contactNumber: "",
   });
 
+  const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
   const BASE_URL =
     import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    setFormErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const validateForm = () => {
+    const errors = {};
     const {
       accountType,
+      businessName,
       documentType,
       documentNumber,
       initialDeposit,
@@ -201,34 +206,54 @@ const AccountForm = ({ onSuccess }) => {
       nomineeName,
       relationship,
       age,
+      contactNumber,
     } = formData;
 
-    if (!accountType) return toast.error("Please select account type");
-    if (!documentType) return toast.error("Please select document type");
-    if (!documentNumber) return toast.error("Please enter document number");
-    if (!initialDeposit) return toast.error("Please enter initial deposit");
-    if (!occupationType) return toast.error("Please select occupation type");
-    if (!incomeSourceType) return toast.error("Please select income source");
-    if (!grossAnnualIncome) return toast.error("Please enter annual income");
-    if (!nomineeName) return toast.error("Please enter nominee name");
-    if (!relationship) return toast.error("Please enter relationship");
-    if (!age) return toast.error("Please enter nominee age");
+    if (!accountType) errors.accountType = "Please select account type";
+    if (accountType === "CURRENT" && !businessName.trim())
+      errors.businessName = "Business name is required";
 
-    const deposit = parseFloat(initialDeposit);
-    const minDeposit = accountType === "CURRENT" ? 10000 : 5000;
-    if (deposit < minDeposit)
-      return toast.error(
-        `Minimum deposit for ${accountType} account is ₹${minDeposit}`
-      );
-
-    if (
-      documentType === "PAN" &&
-      !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(documentNumber)
-    ) {
-      return toast.error("Invalid PAN format (e.g., ABCDE1234F)");
+    if (!documentType) errors.documentType = "Please select document type";
+    if (!documentNumber.trim()) {
+      errors.documentNumber = "Document number is required";
+    } else {
+      if (
+        documentType === "PAN" &&
+        !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(documentNumber)
+      ) {
+        errors.documentNumber = "Invalid PAN format (e.g., ABCDE1234F)";
+      }
+      if (documentType === "AADHAAR" && !/^\d{12}$/.test(documentNumber)) {
+        errors.documentNumber = "Aadhaar must be a 12-digit number";
+      }
     }
-    if (documentType === "AADHAAR" && !/^\d{12}$/.test(documentNumber)) {
-      return toast.error("Aadhaar must be a 12-digit number");
+
+    if (!initialDeposit || Number(initialDeposit) <= 0)
+      errors.initialDeposit = "Initial deposit is required";
+
+    const minDeposit = accountType === "CURRENT" ? 10000 : 5000;
+    if (Number(initialDeposit) < minDeposit)
+      errors.initialDeposit = `Minimum deposit for ${accountType || "this"} account is ₹${minDeposit}`;
+
+    if (!occupationType) errors.occupationType = "Please select occupation type";
+    if (!incomeSourceType)
+      errors.incomeSourceType = "Please select income source type";
+    if (!grossAnnualIncome || Number(grossAnnualIncome) <= 0)
+      errors.grossAnnualIncome = "Please enter valid annual income";
+
+    if (!nomineeName.trim()) errors.nomineeName = "Nominee name is required";
+    if (!relationship.trim())
+      errors.relationship = "Relationship is required";
+    if (!age || Number(age) <= 0)
+      errors.age = "Please enter valid nominee age";
+    if (contactNumber && !/^\d{10}$/.test(contactNumber))
+      errors.contactNumber = "Contact number must be 10 digits";
+
+    setFormErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      toast.error("Please fix the highlighted errors before submitting");
+      return false;
     }
 
     return true;
@@ -286,7 +311,6 @@ const AccountForm = ({ onSuccess }) => {
       );
 
       onSuccess?.();
-
       setFormData({
         accountType: "",
         businessName: "",
@@ -332,7 +356,10 @@ const AccountForm = ({ onSuccess }) => {
         Open a New Account
       </h2>
 
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <form
+        onSubmit={handleSubmit}
+        className="grid grid-cols-1 md:grid-cols-2 gap-6"
+      >
         {/* Account Type */}
         <div>
           <label className="block text-gray-700 mb-1 font-medium">
@@ -348,9 +375,14 @@ const AccountForm = ({ onSuccess }) => {
             <option value="SAVINGS">Savings Account</option>
             <option value="CURRENT">Current Account</option>
           </select>
+          {formErrors.accountType && (
+            <p className="text-red-500 text-sm mt-1">
+              {formErrors.accountType}
+            </p>
+          )}
         </div>
 
-        {/* Business Name (only for Current Account) */}
+        {/* Business Name */}
         {formData.accountType === "CURRENT" && (
           <div>
             <label className="block text-gray-700 mb-1 font-medium">
@@ -364,6 +396,11 @@ const AccountForm = ({ onSuccess }) => {
               className="w-full border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter business name"
             />
+            {formErrors.businessName && (
+              <p className="text-red-500 text-sm mt-1">
+                {formErrors.businessName}
+              </p>
+            )}
           </div>
         )}
 
@@ -381,6 +418,11 @@ const AccountForm = ({ onSuccess }) => {
             placeholder={`Minimum ₹${minDeposit}`}
             min={minDeposit}
           />
+          {formErrors.initialDeposit && (
+            <p className="text-red-500 text-sm mt-1">
+              {formErrors.initialDeposit}
+            </p>
+          )}
         </div>
 
         {/* Document Type */}
@@ -398,6 +440,11 @@ const AccountForm = ({ onSuccess }) => {
             <option value="AADHAAR">Aadhaar</option>
             <option value="PAN">PAN</option>
           </select>
+          {formErrors.documentType && (
+            <p className="text-red-500 text-sm mt-1">
+              {formErrors.documentType}
+            </p>
+          )}
         </div>
 
         {/* Document Number */}
@@ -415,6 +462,11 @@ const AccountForm = ({ onSuccess }) => {
               formData.documentType === "PAN" ? "ABCDE1234F" : "123456789012"
             }
           />
+          {formErrors.documentNumber && (
+            <p className="text-red-500 text-sm mt-1">
+              {formErrors.documentNumber}
+            </p>
+          )}
         </div>
 
         {/* Occupation Type */}
@@ -430,17 +482,22 @@ const AccountForm = ({ onSuccess }) => {
           >
             <option value="">Select</option>
             <option value="STUDENT">Student</option>
-            <option value="JOB">Job</option>
-            <option value="UNEMPLOYED">Unemployed</option>
-            <option value="BUSINESS_OWNER">Business Owner</option>
+            <option value="JOB">JOB</option>
+            <option value="UNEMPLOYED">UnEmployed</option>
+            <option value="BUSINESS_OWNER">Business</option>
             <option value="OTHER">Other</option>
           </select>
+          {formErrors.occupationType && (
+            <p className="text-red-500 text-sm mt-1">
+              {formErrors.occupationType}
+            </p>
+          )}
         </div>
 
         {/* Income Source */}
         <div>
           <label className="block text-gray-700 mb-1 font-medium">
-            Income Source <span className="text-red-500">*</span>
+            Income Source Type <span className="text-red-500">*</span>
           </label>
           <select
             name="incomeSourceType"
@@ -451,8 +508,14 @@ const AccountForm = ({ onSuccess }) => {
             <option value="">Select</option>
             <option value="SALARY">Salary</option>
             <option value="BUSINESS">Business</option>
+            {/* <option value="INVESTMENT">Investment</option> */}
             <option value="OTHER">Other</option>
           </select>
+          {formErrors.incomeSourceType && (
+            <p className="text-red-500 text-sm mt-1">
+              {formErrors.incomeSourceType}
+            </p>
+          )}
         </div>
 
         {/* Annual Income */}
@@ -465,9 +528,14 @@ const AccountForm = ({ onSuccess }) => {
             name="grossAnnualIncome"
             value={formData.grossAnnualIncome}
             onChange={handleChange}
-            placeholder="Enter amount in ₹"
             className="w-full border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter annual income"
           />
+          {formErrors.grossAnnualIncome && (
+            <p className="text-red-500 text-sm mt-1">
+              {formErrors.grossAnnualIncome}
+            </p>
+          )}
         </div>
 
         {/* Nominee Name */}
@@ -483,6 +551,11 @@ const AccountForm = ({ onSuccess }) => {
             className="w-full border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter nominee name"
           />
+          {formErrors.nomineeName && (
+            <p className="text-red-500 text-sm mt-1">
+              {formErrors.nomineeName}
+            </p>
+          )}
         </div>
 
         {/* Relationship */}
@@ -496,8 +569,13 @@ const AccountForm = ({ onSuccess }) => {
             value={formData.relationship}
             onChange={handleChange}
             className="w-full border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="e.g., Father, Wife"
+            placeholder="e.g. Father, Mother"
           />
+          {formErrors.relationship && (
+            <p className="text-red-500 text-sm mt-1">
+              {formErrors.relationship}
+            </p>
+          )}
         </div>
 
         {/* Nominee Age */}
@@ -511,14 +589,17 @@ const AccountForm = ({ onSuccess }) => {
             value={formData.age}
             onChange={handleChange}
             className="w-full border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Enter age"
+            placeholder="Enter nominee age"
           />
+          {formErrors.age && (
+            <p className="text-red-500 text-sm mt-1">{formErrors.age}</p>
+          )}
         </div>
 
-        {/* Nominee Contact */}
+        {/* Contact Number */}
         <div>
           <label className="block text-gray-700 mb-1 font-medium">
-            Nominee Contact (Optional)
+            Contact Number
           </label>
           <input
             type="text"
@@ -526,24 +607,26 @@ const AccountForm = ({ onSuccess }) => {
             value={formData.contactNumber}
             onChange={handleChange}
             className="w-full border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="10-digit mobile number"
+            placeholder="Optional - 10 digits"
           />
+          {formErrors.contactNumber && (
+            <p className="text-red-500 text-sm mt-1">
+              {formErrors.contactNumber}
+            </p>
+          )}
         </div>
 
-        {/* Submit Button (full width) */}
-        <div className="md:col-span-2">
-          <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
+        {/* Submit Button */}
+        <div className="col-span-1 md:col-span-2 text-center mt-4">
+          <button
+            type="submit"
             disabled={loading}
-            className={`w-full py-3 rounded-lg text-white font-semibold transition ${
-              loading
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700 shadow-md"
+            className={`w-full md:w-1/2 py-3 font-semibold rounded-lg text-white transition ${
+              loading ? "bg-blue-400" : "bg-blue-600 hover:bg-blue-700"
             }`}
           >
-            {loading ? "Creating..." : "Create Account"}
-          </motion.button>
+            {loading ? "Submitting..." : "Open Account"}
+          </button>
         </div>
       </form>
     </motion.div>
