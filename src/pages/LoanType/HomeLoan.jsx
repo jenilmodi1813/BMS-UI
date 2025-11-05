@@ -2,12 +2,15 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { applyLoanRequest } from "../../redux/loan/homeLoan/home.loan.slice";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+
 
 
 const HomeLoan = () => {
   const dispatch = useDispatch();
   const { loading, loanResponse, error } = useSelector((state) => state.loan || {});
   const [profile, setProfile] = useState(null);
+    const navigate = useNavigate();
   const [formErrors, setFormErrors] = useState({});
 
   useEffect(() => {
@@ -51,6 +54,31 @@ const HomeLoan = () => {
       registrationNumber: "",
     },
   });
+
+   useEffect(() => {
+    if (profile) {
+      setFormData((prev) => ({
+        ...prev,
+        customerDetails: {
+          ...prev.customerDetails,
+          firstName: "",
+          lastName: "",
+          email: "",
+          phoneNo: "",
+          password: "",
+          address: "",
+          dob: "",
+          gender: "",
+        },
+        cifNumber: "",
+        carDetails: { ...prev.carDetails },
+      }));
+    }
+  }, [profile]);
+
+
+  console.log("Customer Data :", profile);
+  
 
   console.log("HomeLoan Form Data:", formData);
 
@@ -228,6 +256,16 @@ const HomeLoan = () => {
 
     const payload = buildPayload();
     dispatch(applyLoanRequest(payload));
+
+    if (!isLoggedIn && loanResponse.cifNumber) {
+      toast.success(
+        `Loan applied successfully! Your CIF: ${loanResponse.cifNumber}`
+      );
+      navigate("/login");
+    } else if (isLoggedIn) {
+      toast.success("Car loan applied successfully.");
+      navigate("/loan/status");
+    }
   };
 
   useEffect(() => {
@@ -344,7 +382,7 @@ const HomeLoan = () => {
                       <option value="">Select Employment Type</option>
                       <option value="SALARIED">Salaried</option>
                       <option value="SELF_EMPLOYED">Self Employed</option>
-                      <option value="BUSINESS">Business</option>
+                      {/* <option value="BUSINESS">Business</option> */}
                     </select>
                   ) : (
                     <input

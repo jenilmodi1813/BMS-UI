@@ -170,55 +170,50 @@ const CarLoan = () => {
     return true;
   };
 
-  const buildPayload = () => {
-    const base = {
-      loanType: "CAR",
-      requestedAmount: Number(formData.requestedAmount),
-      requestedTenureMonths: parseInt(formData.requestedTenureMonths, 10),
-      employmentType: formData.employmentType,
-      monthlyIncome: Number(formData.monthlyIncome),
-      bankName: formData.bankName,
-      bankAccount: formData.bankAccount,
-      ifscCode: formData.ifscCode,
-      carDetails: {
-        manufacturer: formData.carDetails.manufacturer,
-        carModel: formData.carDetails.carModel,
-        manufactureYear: Number(formData.carDetails.manufactureYear),
-        exShowroomPrice: Number(formData.carDetails.exShowroomPrice || 0),
-        onRoadPrice: Number(formData.carDetails.onRoadPrice || 0),
-        downPayment: Number(formData.carDetails.downPayment || 0),
-        registrationNumber: formData.carDetails.registrationNumber,
-      },
-    };
+const buildPayload = () => {
+  const base = {
+    loanType: "CAR",
+    requestedAmount: Number(formData.requestedAmount),
+    requestedTenureMonths: parseInt(formData.requestedTenureMonths, 10),
+    employmentType: formData.employmentType,
+    monthlyIncome: Number(formData.monthlyIncome),
+    bankName: formData.bankName,
+    bankAccount: formData.bankAccount,
+    ifscCode: formData.ifscCode,
+    carDetails: {
+      manufacturer: formData.carDetails.manufacturer,
+      carModel: formData.carDetails.carModel,
+      manufactureYear: Number(formData.carDetails.manufactureYear),
+      exShowroomPrice: Number(formData.carDetails.exShowroomPrice || 0),
+      onRoadPrice: Number(formData.carDetails.onRoadPrice || 0),
+      downPayment: Number(formData.carDetails.downPayment || 0),
+      registrationNumber: formData.carDetails.registrationNumber,
+    },
+  };
 
-    const customerDetails = isLoggedIn
-      ? {
-          firstName: profile?.firstName || "",
-          lastName: profile?.lastName || "",
-          email: profile?.email || "",
-          phoneNo: profile?.phoneNo || "",
-          address: profile?.address || "",
-          dob: profile?.dob || "",
-          gender: profile?.gender || "",
-          password: "", 
-        }
-      : {
-          firstName: formData.customerDetails.firstName,
-          lastName: formData.customerDetails.lastName,
-          email: formData.customerDetails.email,
-          phoneNo: formData.customerDetails.phoneNo,
-          address: formData.customerDetails.address,
-          dob: formData.customerDetails.dob,
-          gender: formData.customerDetails.gender,
-          password: formData.customerDetails.password,
-        };
-
+  if (isLoggedIn) {
     return {
       ...base,
-      cifNumber: profile?.cifNumber || formData.cifNumber || null,
-      customerDetails,
+      cifNumber: profile?.cifNumber || profile?.cif || profile?.cifNo || "",
     };
-  };
+  } else {
+    return {
+      ...base,
+      customerDetails: {
+        firstName: formData.customerDetails.firstName,
+        lastName: formData.customerDetails.lastName,
+        email: formData.customerDetails.email,
+        phoneNo: formData.customerDetails.phoneNo,
+        password: formData.customerDetails.password,
+        address: formData.customerDetails.address,
+        dob: formData.customerDetails.dob,
+        gender: formData.customerDetails.gender,
+      },
+      cifNumber: "",
+    };
+  }
+};
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -226,11 +221,6 @@ const CarLoan = () => {
     const payload = buildPayload();
     console.log("Final Payload Sent:", payload);
     dispatch(submitCarLoanRequest(payload));
-  };
-
-useEffect(() => {
-  if (loanResponse) {
-    setShowPopup(true);
 
     if (!isLoggedIn && loanResponse.cifNumber) {
       toast.success(
@@ -241,6 +231,12 @@ useEffect(() => {
       toast.success("Car loan applied successfully.");
       navigate("/loan/status");
     }
+  };
+
+useEffect(() => {
+  if (loanResponse) {
+    setShowPopup(true);
+
   }
 }, [loanResponse, isLoggedIn, navigate]);
 
@@ -383,7 +379,7 @@ useEffect(() => {
                       <option value="">Select Employment Type</option>
                       <option value="SALARIED">Salaried</option>
                       <option value="SELF_EMPLOYED">Self Employed</option>
-                      <option value="BUSINESS">Business</option>
+                      {/* <option value="BUSINESS">Business</option> */}
                     </select>
                   ) : (
                     <input
