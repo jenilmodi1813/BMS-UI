@@ -3,7 +3,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { submitCarLoanRequest } from "../../redux/loan/carLoan/car.loan.slice";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import LoanSuccessPopup from "../../components/common/LoanSuccessPopup";
+import {
+  Car, User, Briefcase, Building, History,
+  ChevronDown, ChevronUp, CheckCircle,
+  DollarSign, Calendar, MapPin
+} from "lucide-react";
+import { InputField, SectionHeader } from "../../components/common/FormComponents";
 
 const CarLoan = () => {
   const dispatch = useDispatch();
@@ -11,9 +16,11 @@ const CarLoan = () => {
   const loanResponse = useSelector((state) => state.carLoan.loanResponse);
   const error = useSelector((state) => state.carLoan.error);
   const navigate = useNavigate();
-  const [showPopup, setShowPopup] = useState(false);
   const [profile, setProfile] = useState(null);
   const [formErrors, setFormErrors] = useState({});
+
+  const [showActiveLoans, setShowActiveLoans] = useState(true);
+  const [showClosedLoans, setShowClosedLoans] = useState(false);
 
   useEffect(() => {
     try {
@@ -24,7 +31,7 @@ const CarLoan = () => {
     }
   }, []);
 
-  const [formData, setFormData] = useState({
+  const getInitialFormData = () => ({
     customerDetails: {
       firstName: "",
       lastName: "",
@@ -48,36 +55,44 @@ const CarLoan = () => {
       carModel: "",
       manufacturer: "",
       manufactureYear: "",
+      exShowroomPrice: "",
       onRoadPrice: "",
       downPayment: "",
       registrationNumber: "",
-      // fuelType: "",
-      // transmissionType: "",
+    },
+    loanHistoryDetailsDto: {
+      haveExistingLoans: false,
+      activeLoans: [],
+      closedLoans: [],
+      totalOutstandingAmount: 0,
+      totalMonthlyEmi: 0,
+      totalClosedLoans: 0,
+      totalActiveLoans: 0,
     },
   });
 
- useEffect(() => {
-  if (profile) {
-    setFormData((prev) => ({
-      ...prev,
-      customerDetails: {
-        ...prev.customerDetails,
-        firstName: "",
-        lastName: "",
-        email: "",
-        phoneNo: "",
-        password: "",
-        address: "",
-        dob: "",
-        gender: "",
-      },
-      cifNumber: "",
-      carDetails: { ...prev.carDetails },
-    }));
-  }
-}, [profile]);
+  const [formData, setFormData] = useState(getInitialFormData());
 
-
+  useEffect(() => {
+    if (profile) {
+      setFormData((prev) => ({
+        ...prev,
+        customerDetails: {
+          ...prev.customerDetails,
+          firstName: "",
+          lastName: "",
+          email: "",
+          phoneNo: "",
+          password: "",
+          address: "",
+          dob: "",
+          gender: "",
+        },
+        cifNumber: "",
+        carDetails: { ...prev.carDetails },
+      }));
+    }
+  }, [profile]);
 
   const isLoggedIn = !!profile;
 
@@ -105,6 +120,36 @@ const CarLoan = () => {
     setFormErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
+  // Update single active loan field
+  const updateActiveLoan = (index, key, value) => {
+    setFormData((prev) => {
+      const updated = [...prev.loanHistoryDetailsDto.activeLoans];
+      updated[index] = { ...updated[index], [key]: value };
+      return {
+        ...prev,
+        loanHistoryDetailsDto: {
+          ...prev.loanHistoryDetailsDto,
+          activeLoans: updated,
+        },
+      };
+    });
+  };
+
+  // Update single closed loan field
+  const updateClosedLoan = (index, key, value) => {
+    setFormData((prev) => {
+      const updated = [...prev.loanHistoryDetailsDto.closedLoans];
+      updated[index] = { ...updated[index], [key]: value };
+      return {
+        ...prev,
+        loanHistoryDetailsDto: {
+          ...prev.loanHistoryDetailsDto,
+          closedLoans: updated,
+        },
+      };
+    });
+  };
+
   const validateForm = () => {
     const errors = {};
     const cd = formData.customerDetails;
@@ -120,7 +165,20 @@ const CarLoan = () => {
       if (!cd.password || cd.password.length < 8)
         errors.password = "Password must be at least 8 characters";
       if (!cd.address.trim()) errors.address = "Address is required";
-      if (!cd.dob) errors.dob = "Date of birth is required";
+
+      if (!cd.dob) {
+        errors.dob = "Date of birth is required";
+      } else {
+        const dobDate = new Date(cd.dob);
+        const today = new Date();
+        let age = today.getFullYear() - dobDate.getFullYear();
+        const m = today.getMonth() - dobDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < dobDate.getDate())) {
+          age--;
+        }
+        if (age < 18) errors.dob = "You must be at least 18 years old";
+      }
+
       if (!cd.gender) errors.gender = "Gender is required";
     }
 
@@ -131,6 +189,10 @@ const CarLoan = () => {
       Number(formData.requestedTenureMonths) <= 0
     )
       errors.requestedTenureMonths = "Tenure must be greater than 0";
+
+    if (Number(formData.requestedTenureMonths) > 84)
+      errors.requestedTenureMonths = "Tenure cannot exceed 7 years (84 months)";
+
     if (!formData.employmentType)
       errors.employmentType = "Employment type is required";
     if (!formData.monthlyIncome || Number(formData.monthlyIncome) <= 0)
@@ -146,21 +208,22 @@ const CarLoan = () => {
     if (!car.manufacturer.trim())
       errors.manufacturer = "Car manufacturer is required";
     if (!car.carModel.trim()) errors.carModel = "Car model is required";
-    if (!car.manufactureYear || Number(car.manufactureYear) < 1990)
+
+    const currentYear = new Date().getFullYear();
+    if (!car.manufactureYear || Number(car.manufactureYear) < 1990 || Number(car.manufactureYear) > currentYear + 1)
       errors.manufactureYear = "Enter valid manufacturing year";
+
     if (!car.exShowroomPrice || Number(car.exShowroomPrice) <= 0)
       errors.exShowroomPrice = "Ex-showroom price required";
-    // if (!car.onRoadPrice || Number(car.onRoadPrice) <= 0)
-    //   errors.onRoadPrice = "On-road price required";
+
     if (Number(car.downPayment) < 0)
       errors.downPayment = "Down payment cannot be negative";
-    // if (Number(car.downPayment) > Number(car.onRoadPrice))
-    //   errors.downPayment = "Down payment cannot exceed on-road price";
+
+    if (Number(car.downPayment) >= Number(car.exShowroomPrice))
+      errors.downPayment = "Down payment cannot be greater than or equal to ex-showroom price";
+
     if (!car.registrationNumber.trim())
       errors.registrationNumber = "Registration number required";
-    // if (!car.fuelType.trim()) errors.fuelType = "Fuel type is required";
-    // if (!car.transmissionType.trim())
-    //   errors.transmissionType = "Transmission type is required";
 
     setFormErrors(errors);
     if (Object.keys(errors).length) {
@@ -170,6 +233,7 @@ const CarLoan = () => {
     return true;
   };
 
+  // Build loanHistoryDetailsDto only if user has loans
   const buildPayload = () => {
     const base = {
       loanType: "CAR",
@@ -193,30 +257,70 @@ const CarLoan = () => {
 
     const customerDetails = isLoggedIn
       ? {
-          firstName: profile?.firstName || "",
-          lastName: profile?.lastName || "",
-          email: profile?.email || "",
-          phoneNo: profile?.phoneNo || "",
-          address: profile?.address || "",
-          dob: profile?.dob || "",
-          gender: profile?.gender || "",
-          password: "", 
-        }
+        firstName: profile?.firstName || "",
+        lastName: profile?.lastName || "",
+        email: profile?.email || "",
+        phoneNo: profile?.phoneNo || "",
+        address: profile?.address || "",
+        dob: profile?.dob || "",
+        gender: profile?.gender || "",
+        password: "",
+      }
       : {
-          firstName: formData.customerDetails.firstName,
-          lastName: formData.customerDetails.lastName,
-          email: formData.customerDetails.email,
-          phoneNo: formData.customerDetails.phoneNo,
-          address: formData.customerDetails.address,
-          dob: formData.customerDetails.dob,
-          gender: formData.customerDetails.gender,
-          password: formData.customerDetails.password,
-        };
+        firstName: formData.customerDetails.firstName,
+        lastName: formData.customerDetails.lastName,
+        email: formData.customerDetails.email,
+        phoneNo: formData.customerDetails.phoneNo,
+        address: formData.customerDetails.address,
+        dob: formData.customerDetails.dob,
+        gender: formData.customerDetails.gender,
+        password: formData.customerDetails.password,
+      };
+
+    // FIX: Always send array & null if no loans exist
+    if (!formData.loanHistoryDetailsDto.haveExistingLoans) {
+      return {
+        ...base,
+        cifNumber: profile?.cifNumber || formData.cifNumber || null,
+        customerDetails,
+        loanHistoryDetailsDto: null,
+      };
+    }
+
+    const activeLoans = Array.isArray(formData.loanHistoryDetailsDto.activeLoans)
+      ? formData.loanHistoryDetailsDto.activeLoans
+      : [];
+
+    const closedLoans = Array.isArray(formData.loanHistoryDetailsDto.closedLoans)
+      ? formData.loanHistoryDetailsDto.closedLoans
+      : [];
+
+    const totalActiveLoans = activeLoans.length;
+    const totalClosedLoans = closedLoans.length;
+
+    const totalMonthlyEmi = activeLoans.reduce(
+      (sum, loan) => sum + Number(loan.emiAmount || 0),
+      0
+    );
+
+    const totalOutstandingAmount = activeLoans.reduce(
+      (sum, loan) => sum + Number(loan.remainingAmount || 0),
+      0
+    );
 
     return {
       ...base,
       cifNumber: profile?.cifNumber || formData.cifNumber || null,
       customerDetails,
+      loanHistoryDetailsDto: {
+        haveExistingLoans: true,
+        activeLoans,
+        closedLoans,
+        totalOutstandingAmount,
+        totalMonthlyEmi,
+        totalClosedLoans,
+        totalActiveLoans,
+      },
     };
   };
 
@@ -224,314 +328,404 @@ const CarLoan = () => {
     e.preventDefault();
     if (!validateForm()) return;
     const payload = buildPayload();
-    console.log("Final Payload Sent:", payload);
+
     dispatch(submitCarLoanRequest(payload));
   };
 
-useEffect(() => {
-  if (loanResponse) {
-    setShowPopup(true);
+  useEffect(() => {
+    if (!loading && loanResponse && !error) {
+      const loanId = loanResponse.loanId;
+      if (loanId) {
+        localStorage.setItem("loanApplicationId", loanId);
+      }
 
-    if (!isLoggedIn && loanResponse.cifNumber) {
-      toast.success(
-        `Loan applied successfully! Your CIF: ${loanResponse.cifNumber}`
-      );
-      navigate("/login");
-    } else if (isLoggedIn) {
-      toast.success("Car loan applied successfully.");
-      navigate("/loan/status");
+      toast.success("Car loan submitted! Please upload KYC documents.");
+
+      navigate("/kyc-upload");
     }
-  }
-}, [loanResponse, isLoggedIn, navigate]);
 
+    if (!loading && error) {
+      toast.error(error);
+    }
+  }, [loanResponse, error, loading, navigate]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center p-8">
-      <div className="bg-white shadow-2xl rounded-2xl w-full max-w-4xl p-10">
-        <h1 className="text-3xl font-bold text-blue-700 text-center mb-10">
-          Car Loan Application
-        </h1>
+    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto">
+        <div className="text-center mb-10">
+          <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight sm:text-5xl mb-2">
+            Car Loan Application
+          </h1>
+          <p className="text-lg text-gray-600">Drive your dream car with our easy financing</p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-10">
-          {!isLoggedIn && (
-            <section>
-              <h2 className="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">
-                Customer Details
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {[
-                  "firstName",
-                  "lastName",
-                  "email",
-                  "phoneNo",
-                  "password",
-                  "address",
-                ].map((name) => (
-                  <div key={name}>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">
-                      {name.replace(/([A-Z])/g, " $1").toUpperCase()}
-                    </label>
-                    <input
-                      name={name}
-                      type={name === "password" ? "password" : "text"}
-                      value={formData.customerDetails[name]}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
-                    />
-                    {formErrors[name] && (
-                      <p className="text-red-500 text-sm">{formErrors[name]}</p>
-                    )}
-                  </div>
-                ))}
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
-                    Date of Birth
-                  </label>
-                  <input
-                    type="date"
-                    name="dob"
-                    value={formData.customerDetails.dob}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400"
-                  />
-                  {formErrors.dob && (
-                    <p className="text-red-500 text-sm">{formErrors.dob}</p>
-                  )}
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Customer Details Card */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+            <SectionHeader title="Personal Information" icon={User} />
+
+            {isLoggedIn ? (
+              <div className="bg-blue-50 rounded-xl p-6 border border-blue-100 flex items-start gap-4">
+                <div className="p-3 bg-white rounded-full shadow-sm">
+                  <User className="w-6 h-6 text-blue-600" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
-                    Gender
-                  </label>
+                  <h3 className="text-lg font-semibold text-gray-900">Logged in as {profile.firstName} {profile.lastName}</h3>
+                  <p className="text-gray-600 text-sm mt-1">{profile.email}</p>
+                  <p className="text-gray-500 text-xs mt-2 font-mono bg-white px-2 py-1 rounded inline-block border border-blue-100">CIF: {profile.cifNumber}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <InputField label="First Name" name="firstName" value={formData.customerDetails.firstName} onChange={handleChange} error={formErrors.firstName} icon={User} placeholder="Enter your first name" />
+                <InputField label="Last Name" name="lastName" value={formData.customerDetails.lastName} onChange={handleChange} error={formErrors.lastName} icon={User} placeholder="Enter your last name" />
+                <InputField label="Email" name="email" type="email" value={formData.customerDetails.email} onChange={handleChange} error={formErrors.email} icon={User} placeholder="Enter your email address" />
+                <InputField label="Phone Number" name="phoneNo" value={formData.customerDetails.phoneNo} onChange={handleChange} error={formErrors.phoneNo} icon={User} placeholder="Enter your 10-digit phone number" />
+                <InputField label="Password" name="password" type="password" value={formData.customerDetails.password} onChange={handleChange} error={formErrors.password} icon={User} placeholder="Create a secure password" />
+                <InputField label="Date of Birth" name="dob" type="date" value={formData.customerDetails.dob} onChange={handleChange} error={formErrors.dob} />
+
+                <div className="relative">
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Gender</label>
                   <select
                     name="gender"
                     value={formData.customerDetails.gender}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400"
+                    className="block w-full pl-4 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   >
                     <option value="">Select Gender</option>
                     <option value="MALE">Male</option>
                     <option value="FEMALE">Female</option>
                     <option value="OTHER">Other</option>
                   </select>
-                  {formErrors.gender && (
-                    <p className="text-red-500 text-sm">{formErrors.gender}</p>
-                  )}
+                  {formErrors.gender && <p className="text-red-500 text-xs mt-1">{formErrors.gender}</p>}
+                </div>
+
+                <div className="md:col-span-2">
+                  <InputField label="Address" name="address" value={formData.customerDetails.address} onChange={handleChange} error={formErrors.address} icon={MapPin} placeholder="Enter your full address" />
                 </div>
               </div>
-            </section>
-          )}
+            )}
+          </div>
 
-          {isLoggedIn && (
-            <section>
-              <h2 className="text-lg font-medium text-gray-700 mb-2">
-                Logged in as
-              </h2>
-              <div className="p-3 border rounded-md bg-gray-50">
-                <p className="text-sm">
-                  <strong>
-                    {profile.firstName} {profile.lastName}
-                  </strong>{" "}
-                  — CIF: <strong>{profile.cifNumber}</strong>
-                </p>
-                <p className="text-sm text-gray-600">{profile.email}</p>
-              </div>
-            </section>
-          )}
+          {/* Loan Details Card */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+            <SectionHeader title="Loan Requirements" icon={DollarSign} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <InputField
+                label="Requested Amount"
+                name="requestedAmount"
+                type="number"
+                value={formData.requestedAmount}
+                onChange={handleChange}
+                error={formErrors.requestedAmount}
+                icon={DollarSign}
+                placeholder="e.g. 500000"
+              />
+              <InputField
+                label="Tenure (Months)"
+                name="requestedTenureMonths"
+                type="number"
+                value={formData.requestedTenureMonths}
+                onChange={handleChange}
+                error={formErrors.requestedTenureMonths}
+                icon={Calendar}
+                placeholder="e.g. 60"
+              />
 
-          <section>
-            <h2 className="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">
-              Loan Details
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {[
-                {
-                  name: "requestedAmount",
-                  label: "Requested Amount",
-                  type: "number",
-                  min: 0,
-                },
-                {
-                  name: "requestedTenureMonths",
-                  label: "Tenure (Months)",
-                  type: "number",
-                  min: 0,
-                },
-                {
-                  name: "employmentType",
-                  label: "Employment Type",
-                  type: "select",
-                },
-                {
-                  name: "monthlyIncome",
-                  label: "Monthly Income",
-                  type: "number",
-                  min: 0,
-                },
-              ].map(({ name, label, type, min }) => (
-                <div key={name}>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
-                    {label}
-                  </label>
-
-                  {type === "select" ? (
-                    <select
-                      name={name}
-                      value={formData[name]}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
-                    >
-                      <option value="">Select Employment Type</option>
-                      <option value="SALARIED">Salaried</option>
-                      <option value="SELF_EMPLOYED">Self Employed</option>
-                      <option value="BUSINESS">Business</option>
-                    </select>
-                  ) : (
-                    <input
-                      name={name}
-                      type="number"
-                      min={min}
-                      value={formData[name]}
-                      onChange={handleChange}
-                      placeholder={label}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
-                    />
-                  )}
-
-                  {formErrors[name] && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {formErrors[name]}
-                    </p>
-                  )}
-                  {name === "requestedAmount" && !formErrors[name] && (
-                    <p className="text-gray-400 text-xs mt-1">e.g., 500000</p>
-                  )}
-                  {name === "requestedTenureMonths" && !formErrors[name] && (
-                    <p className="text-gray-400 text-xs mt-1">
-                      e.g., 240 months (20 years)
-                    </p>
-                  )}
-                  {name === "monthlyIncome" && !formErrors[name] && (
-                    <p className="text-gray-400 text-xs mt-1">e.g., 75000</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">
-              Bank Details
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {[
-                { name: "bankName", label: "Bank Name" },
-                { name: "bankAccount", label: "Account Number" },
-                { name: "ifscCode", label: "IFSC Code" },
-              ].map(({ name, label }) => (
-                <div key={name}>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
-                    {label}
-                  </label>
-                  <input
-                    name={name}
-                    placeholder={label}
-                    value={formData[name]}
+              <div className="relative">
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Employment Type</label>
+                <div className="relative">
+                  <Briefcase className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none h-full w-8 text-gray-400" />
+                  <select
+                    name="employmentType"
+                    value={formData.employmentType}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
-                  />
-                  {formErrors[name] && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {formErrors[name]}
-                    </p>
-                  )}
-                  {name === "bankAccount" && !formErrors[name] && (
-                    <p className="text-gray-400 text-xs mt-1">9 to 18 digits</p>
-                  )}
-                  {name === "ifscCode" && !formErrors[name] && (
-                    <p className="text-gray-400 text-xs mt-1">
-                      e.g., SBIN0002499
-                    </p>
+                    className="block w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  >
+                    <option value="">Select Type</option>
+                    <option value="SALARIED">Salaried</option>
+                    <option value="SELF_EMPLOYED">Self Employed</option>
+                    <option value="BUSINESS">Business</option>
+                  </select>
+                </div>
+                {formErrors.employmentType && <p className="text-red-500 text-xs mt-1">{formErrors.employmentType}</p>}
+              </div>
+
+              <InputField
+                label="Monthly Income"
+                name="monthlyIncome"
+                type="number"
+                value={formData.monthlyIncome}
+                onChange={handleChange}
+                error={formErrors.monthlyIncome}
+                icon={DollarSign}
+              />
+            </div>
+          </div>
+
+          {/* Car Details Card */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+            <SectionHeader title="Car Information" icon={Car} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <InputField
+                label="Manufacturer"
+                name="manufacturer"
+                value={formData.carDetails.manufacturer}
+                onChange={(e) => handleChange(e, "carDetails")}
+                error={formErrors.manufacturer}
+                placeholder="e.g. Toyota"
+              />
+              <InputField
+                label="Car Model"
+                name="carModel"
+                value={formData.carDetails.carModel}
+                onChange={(e) => handleChange(e, "carDetails")}
+                error={formErrors.carModel}
+                placeholder="e.g. Fortuner"
+              />
+              <InputField
+                label="Manufacturing Year"
+                name="manufactureYear"
+                type="number"
+                value={formData.carDetails.manufactureYear}
+                onChange={(e) => handleChange(e, "carDetails")}
+                error={formErrors.manufactureYear}
+                placeholder="e.g. 2023"
+              />
+              <InputField
+                label="Ex-Showroom Price"
+                name="exShowroomPrice"
+                type="number"
+                value={formData.carDetails.exShowroomPrice}
+                onChange={(e) => handleChange(e, "carDetails")}
+                error={formErrors.exShowroomPrice}
+                icon={DollarSign}
+              />
+              <InputField
+                label="Down Payment"
+                name="downPayment"
+                type="number"
+                value={formData.carDetails.downPayment}
+                onChange={(e) => handleChange(e, "carDetails")}
+                error={formErrors.downPayment}
+                icon={DollarSign}
+              />
+              <InputField
+                label="Registration Number"
+                name="registrationNumber"
+                value={formData.carDetails.registrationNumber}
+                onChange={(e) => handleChange(e, "carDetails")}
+                error={formErrors.registrationNumber}
+                placeholder="e.g. MH12AB1234"
+              />
+            </div>
+          </div>
+
+          {/* Bank Details Card */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+            <SectionHeader title="Bank Details" icon={Building} />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <InputField
+                label="Bank Name"
+                name="bankName"
+                value={formData.bankName}
+                onChange={handleChange}
+                error={formErrors.bankName}
+                icon={Building}
+              />
+              <InputField
+                label="Account Number"
+                name="bankAccount"
+                value={formData.bankAccount}
+                onChange={handleChange}
+                error={formErrors.bankAccount}
+              />
+              <InputField
+                label="IFSC Code"
+                name="ifscCode"
+                value={formData.ifscCode}
+                onChange={handleChange}
+                error={formErrors.ifscCode}
+              />
+            </div>
+          </div>
+
+          {/* Loan History Card */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+            <SectionHeader title="Loan History" icon={History} />
+
+            <div className="flex items-center mb-6">
+              <input
+                type="checkbox"
+                id="haveExistingLoans"
+                checked={formData.loanHistoryDetailsDto.haveExistingLoans}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    loanHistoryDetailsDto: {
+                      ...prev.loanHistoryDetailsDto,
+                      haveExistingLoans: e.target.checked,
+                      activeLoans: e.target.checked ? prev.loanHistoryDetailsDto.activeLoans || [] : [],
+                      closedLoans: e.target.checked ? prev.loanHistoryDetailsDto.closedLoans || [] : [],
+                    },
+                  }))
+                }
+                className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <label htmlFor="haveExistingLoans" className="ml-3 text-gray-700 font-medium">
+                I have existing or past loans
+              </label>
+            </div>
+
+            {formData.loanHistoryDetailsDto.haveExistingLoans && (
+              <div className="space-y-6 animate-fadeIn">
+                {/* Active Loans Section */}
+                <div className="border border-gray-200 rounded-xl overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setShowActiveLoans(!showActiveLoans)}
+                    className="w-full flex justify-between items-center px-6 py-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+                  >
+                    <span className="font-semibold text-gray-800">Active Loans</span>
+                    {showActiveLoans ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
+                  </button>
+
+                  {showActiveLoans && (
+                    <div className="p-6 bg-white">
+                      {formData.loanHistoryDetailsDto.activeLoans.map((loan, index) => (
+                        <div key={index} className="mb-6 p-6 border border-gray-100 rounded-xl bg-gray-50 relative group">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                loanHistoryDetailsDto: {
+                                  ...prev.loanHistoryDetailsDto,
+                                  activeLoans: prev.loanHistoryDetailsDto.activeLoans.filter((_, i) => i !== index),
+                                },
+                              }))
+                            }
+                            className="absolute top-4 right-4 text-red-400 hover:text-red-600 transition-colors"
+                          >
+                            Remove
+                          </button>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <InputField placeholder="Loan Type" value={loan.loanType} onChange={(e) => updateActiveLoan(index, "loanType", e.target.value)} />
+                            <InputField placeholder="Amount" type="number" value={loan.loanAmount} onChange={(e) => updateActiveLoan(index, "loanAmount", e.target.value)} />
+                            <InputField placeholder="EMI Amount" type="number" value={loan.emiAmount} onChange={(e) => updateActiveLoan(index, "emiAmount", e.target.value)} />
+                            <InputField placeholder="Bank Name" value={loan.bankOrLenderName} onChange={(e) => updateActiveLoan(index, "bankOrLenderName", e.target.value)} />
+                            <InputField placeholder="Remaining Amount" type="number" value={loan.remainingAmount} onChange={(e) => updateActiveLoan(index, "remainingAmount", e.target.value)} />
+                          </div>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            loanHistoryDetailsDto: {
+                              ...prev.loanHistoryDetailsDto,
+                              activeLoans: [
+                                ...prev.loanHistoryDetailsDto.activeLoans,
+                                { loanType: "", loanAmount: "", remainingAmount: "", tenureMonths: "", emiAmount: "", bankOrLenderName: "", startDate: "", endDate: "" },
+                              ],
+                            },
+                          }))
+                        }
+                        className="flex items-center gap-2 text-blue-600 font-medium hover:text-blue-700 transition-colors"
+                      >
+                        <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">+</div>
+                        Add Active Loan
+                      </button>
+                    </div>
                   )}
                 </div>
-              ))}
-            </div>
-          </section>
 
-          <section>
-            <h2 className="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">
-              Car Details
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {[
-                { name: "manufacturer", label: "Car Manufacturer" },
-                { name: "carModel", label: "Car Model" },
-                {
-                  name: "manufactureYear",
-                  label: "Manufacturing Year",
-                  type: "number",
-                },
-                {
-                  name: "exShowroomPrice",
-                  label: "Ex-Showroom Price",
-                  type: "number",
-                },
-                // { name: "onRoadPrice", label: "On-Road Price", type: "number" },
-                { name: "downPayment", label: "Down Payment", type: "number" },
-                { name: "registrationNumber", label: "Registration Number" },
-                // { name: "fuelType", label: "Fuel Type" },
-                // { name: "transmissionType", label: "Transmission Type" },
-              ].map(({ name, label, type }) => (
-                <div key={name}>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
-                    {label}
-                  </label>
-                  <input
-                    name={name}
-                    type={type || "text"}
-                    value={formData.carDetails[name]}
-                    onChange={(e) => handleChange(e, "carDetails")}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400"
-                  />
-                  {formErrors[name] && (
-                    <p className="text-red-500 text-sm">{formErrors[name]}</p>
+                {/* Closed Loans Section */}
+                <div className="border border-gray-200 rounded-xl overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setShowClosedLoans(!showClosedLoans)}
+                    className="w-full flex justify-between items-center px-6 py-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+                  >
+                    <span className="font-semibold text-gray-800">Closed Loans</span>
+                    {showClosedLoans ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
+                  </button>
+
+                  {showClosedLoans && (
+                    <div className="p-6 bg-white">
+                      {formData.loanHistoryDetailsDto.closedLoans.map((loan, index) => (
+                        <div key={index} className="mb-6 p-6 border border-gray-100 rounded-xl bg-gray-50 relative">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                loanHistoryDetailsDto: {
+                                  ...prev.loanHistoryDetailsDto,
+                                  closedLoans: prev.loanHistoryDetailsDto.closedLoans.filter((_, i) => i !== index),
+                                },
+                              }))
+                            }
+                            className="absolute top-4 right-4 text-red-400 hover:text-red-600 transition-colors"
+                          >
+                            Remove
+                          </button>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <InputField placeholder="Loan Type" value={loan.loanType} onChange={(e) => updateClosedLoan(index, "loanType", e.target.value)} />
+                            <InputField placeholder="Amount" type="number" value={loan.loanAmount} onChange={(e) => updateClosedLoan(index, "loanAmount", e.target.value)} />
+                            <InputField placeholder="Bank Name" value={loan.bankOrLenderName} onChange={(e) => updateClosedLoan(index, "bankOrLenderName", e.target.value)} />
+                          </div>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            loanHistoryDetailsDto: {
+                              ...prev.loanHistoryDetailsDto,
+                              closedLoans: [
+                                ...prev.loanHistoryDetailsDto.closedLoans,
+                                { loanType: "", loanAmount: "", bankOrLenderName: "", startDate: "", endDate: "" },
+                              ],
+                            },
+                          }))
+                        }
+                        className="flex items-center gap-2 text-blue-600 font-medium hover:text-blue-700 transition-colors"
+                      >
+                        <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">+</div>
+                        Add Closed Loan
+                      </button>
+                    </div>
                   )}
                 </div>
-              ))}
-            </div>
-          </section>
+              </div>
+            )}
+          </div>
 
-          <div className="text-center">
+          {/* Submit Button */}
+          <div className="flex justify-end pt-6">
             <button
               type="submit"
               disabled={loading}
-              className={`w-full md:w-1/2 py-3 font-semibold rounded-lg text-white transition ${
-                loading ? "bg-blue-400" : "bg-blue-600 hover:bg-blue-700"
-              }`}
+              className="px-8 py-4 bg-blue-600 text-white rounded-xl font-bold text-lg shadow-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-3"
             >
-              {loading ? "Submitting..." : "Submit Car Loan Application"}
+              {loading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Processing...
+                </>
+              ) : (
+                <>
+                  Submit Application
+                  <CheckCircle className="w-5 h-5" />
+                </>
+              )}
             </button>
-           {loanResponse && (
-  <p className="text-green-600 font-semibold mt-4">
-    {loanResponse.message || "Application submitted successfully!"}
-  </p>
-)}
-
-            {error && (
-              <p className="text-red-500 font-semibold mt-4">{error}</p>
-            )}
           </div>
         </form>
       </div>
-      {showPopup && (
-        <LoanSuccessPopup
-          name={`${profile?.firstName || formData.customerDetails.firstName} ${
-            profile?.lastName || formData.customerDetails.lastName
-          }`}
-          email={profile?.email || formData.customerDetails.email}
-          serviceType="Car Loan"
-          onClose={() => setShowPopup(false)}
-        />
-      )}
     </div>
   );
 };

@@ -1,5 +1,10 @@
 import { call, put, takeLatest } from "redux-saga/effects";
-import { applyLoan, getLoansByCif, getLoanHistoryById } from "./home.loan.service";
+import {
+  applyHomeLoan,
+  getHomeLoansByCif,
+  getHomeLoanHistoryById,
+} from "./home.loan.service";
+
 import {
   applyLoanRequest,
   applyLoanSuccess,
@@ -7,35 +12,35 @@ import {
   fetchLoanListRequest,
   fetchLoanListSuccess,
   fetchLoanListFailure,
-   fetchLoanHistoryRequest,
+  fetchLoanHistoryRequest,
   fetchLoanHistorySuccess,
   fetchLoanHistoryFailure,
 } from "./home.loan.slice";
 
 function* handleApplyLoan(action) {
   try {
-    const response = yield call(applyLoan, action.payload);
-    yield put(applyLoanSuccess(response));
+    const data = yield call(applyHomeLoan, action.payload);
+    yield put(applyLoanSuccess(data));
   } catch (error) {
-    yield put(applyLoanFailure(error.message || "Loan application failed"));
+    yield put(applyLoanFailure(error.message));
   }
 }
 
 function* handleFetchLoanList(action) {
   try {
-    const response = yield call(getLoansByCif, action.payload);
-    yield put(fetchLoanListSuccess(response));
+    const data = yield call(getHomeLoansByCif, action.payload);
+    yield put(fetchLoanListSuccess(data));
   } catch (error) {
-    yield put(fetchLoanListFailure(error));
+    yield put(fetchLoanListFailure(error.message));
   }
 }
 
 function* fetchLoanHistory(action) {
   try {
-    const data = yield call(getLoanHistoryById, action.payload);
+    const data = yield call(getHomeLoanHistoryById, action.payload);
     yield put(fetchLoanHistorySuccess(data));
   } catch (error) {
-    yield put(fetchLoanHistoryFailure(error.response?.data || error.message));
+    yield put(fetchLoanHistoryFailure(error.message));
   }
 }
 

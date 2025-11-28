@@ -4,8 +4,16 @@ import accountSaga from "./account/saga";
 import profileSaga from "./profile/profile.saga";
 import homeLoanSaga from "./loan/homeLoan/home.loan.saga";
 import carLoanSaga from "./loan/carLoan/car.loan.saga";
+import loanSaga from "./loan/loan.saga";
 
 export default function* rootSaga() {
-  yield all([authSaga(), profileSaga(), homeLoanSaga(), carLoanSaga() ,accountSaga()]);
+  yield all([
+    authSaga(),
+    profileSaga(),
+    homeLoanSaga(),
+    carLoanSaga(),
+    accountSaga(),
+    loanSaga(),
+  ]);
 
 }

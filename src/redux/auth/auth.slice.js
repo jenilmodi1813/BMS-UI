@@ -8,6 +8,7 @@ const initialState = {
   isAuthenticated: false,
   loading: false,
   error: null,
+  registrationSuccess: false,
 };
 
 const authSlice = createSlice({
@@ -38,14 +39,17 @@ const authSlice = createSlice({
     registerRequest: (state) => {
       state.loading = true;
       state.error = null;
+      state.registrationSuccess = false;
     },
     registerSuccess: (state) => {
       state.loading = false;
       state.error = null;
+      state.registrationSuccess = true;
     },
     registerFailure: (state, action) => {
       state.loading = false;
       state.error = action.payload;
+      state.registrationSuccess = false;
     },
 
     // --- LOGOUT ---
@@ -53,6 +57,11 @@ const authSlice = createSlice({
 
     // --- UTILITY ---
     clearError: (state) => {
+      state.error = null;
+    },
+    resetRegistrationState: (state) => {
+      state.registrationSuccess = false;
+      state.loading = false;
       state.error = null;
     },
   },
@@ -67,6 +76,7 @@ export const {
   registerFailure,
   logout,
   clearError,
+  resetRegistrationState,
 } = authSlice.actions;
 
 export default authSlice.reducer;

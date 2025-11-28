@@ -1,733 +1,7 @@
-// // import React, { useEffect, useState } from "react";
-// // import axios from "axios";
-// // import { motion } from "framer-motion";
-// // import { FaSearch, FaTrashAlt, FaPlus, FaMoneyBillWave } from "react-icons/fa";
-// // import toast from "react-hot-toast";
-// // import AccountForm from "../../components/Account/AccountForm";
-
-// // const Account = () => {
-// //   const [accounts, setAccounts] = useState([]);
-// //   const [search, setSearch] = useState("");
-// //   const [showForm, setShowForm] = useState(false);
-// //   const [loading, setLoading] = useState(false);
-
-// //   const BASE_URL =
-// //     import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
-// //   const cifNumber =
-// //     JSON.parse(localStorage.getItem("auth"))?.customer?.cifNumber || "";
-
-// //   // Fetch accounts
-// //   const fetchAccounts = async () => {
-// //     if (!cifNumber) return;
-// //     try {
-// //       setLoading(true);
-// //       const { data } = await axios.get(`${BASE_URL}/accounts/cif/${cifNumber}`);
-// //       setAccounts(data);
-// //     } catch (err) {
-// //       toast.error("Failed to fetch accounts");
-// //     } finally {
-// //       setLoading(false);
-// //     }
-// //   };
-
-// //   useEffect(() => {
-// //     fetchAccounts();
-// //   }, []);
-
-// //   // Delete account
-// //   const handleDelete = async (id) => {
-// //     if (!window.confirm("Are you sure you want to delete this account?")) return;
-// //     try {
-// //       await axios.delete(`${BASE_URL}/accounts/${id}`);
-// //       toast.success("Account deleted successfully!");
-// //       fetchAccounts();
-// //     } catch (err) {
-// //       toast.error("Failed to delete account");
-// //     }
-// //   };
-
-// //   // Filter by account number
-// //   const filteredAccounts = accounts.filter((acc) =>
-// //     acc.accountNumber.toLowerCase().includes(search.toLowerCase())
-// //   );
-
-// //   return (
-// //     <motion.div
-// //       className="p-6 bg-gray-50 min-h-screen"
-// //       initial={{ opacity: 0 }}
-// //       animate={{ opacity: 1 }}
-// //     >
-// //       {/* Header */}
-// //       <div className="flex justify-between items-center mb-6">
-// //         <h2 className="text-3xl font-semibold text-gray-800">My Accounts</h2>
-// //         <button
-// //           onClick={() => setShowForm(!showForm)}
-// //           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition-all"
-// //         >
-// //           <FaPlus /> {showForm ? "Close Form" : "Open New Account"}
-// //         </button>
-// //       </div>
-
-// //       {/* Form */}
-// //       {showForm && (
-// //         <motion.div
-// //           className="bg-white rounded-xl shadow-lg p-6 mb-6"
-// //           initial={{ opacity: 0, y: -20 }}
-// //           animate={{ opacity: 1, y: 0 }}
-// //         >
-// //           <AccountForm
-// //             onSuccess={() => {
-// //               fetchAccounts();
-// //               setShowForm(false);
-// //             }}
-// //           />
-// //         </motion.div>
-// //       )}
-
-// //       {/* Search */}
-// //       <div className="flex items-center bg-white shadow-md rounded-lg p-3 mb-6">
-// //         <FaSearch className="text-gray-400 mr-2" />
-// //         <input
-// //           type="text"
-// //           placeholder="Search by Account Number..."
-// //           value={search}
-// //           onChange={(e) => setSearch(e.target.value)}
-// //           className="flex-1 outline-none text-gray-700"
-// //         />
-// //       </div>
-
-// //       {/* Accounts */}
-// //       {loading ? (
-// //         <p className="text-center text-gray-500">Loading accounts...</p>
-// //       ) : filteredAccounts.length > 0 ? (
-// //         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-// //           {filteredAccounts.map((acc) => (
-// //             <motion.div
-// //               key={acc.id}
-// //               className="bg-white shadow-lg rounded-2xl p-5 border border-gray-100 hover:shadow-2xl transition-all"
-// //               whileHover={{ scale: 1.02 }}
-// //             >
-// //               <div className="flex justify-between items-center mb-2">
-// //                 <h3 className="text-xl font-semibold text-gray-800">
-// //                   {acc.accountType} ACCOUNT
-// //                 </h3>
-// //                 <span
-// //                   className={`text-sm font-medium px-3 py-1 rounded-full ${
-// //                     acc.status === "ACTIVE"
-// //                       ? "bg-green-100 text-green-700"
-// //                       : "bg-yellow-100 text-yellow-700"
-// //                   }`}
-// //                 >
-// //                   {acc.status}
-// //                 </span>
-// //               </div>
-
-// //               <p className="text-gray-600 text-sm mb-2">
-// //                 Account No: <span className="font-medium">{acc.accountNumber}</span>
-// //               </p>
-// //               <p className="text-gray-600 text-sm mb-2">
-// //                 CIF: <span className="font-medium">{acc.cifNumber}</span>
-// //               </p>
-// //               <p className="text-gray-600 text-sm mb-2">
-// //                 Balance: <span className="font-semibold">₹{acc.balance}</span>
-// //               </p>
-// //               <p className="text-gray-600 text-sm mb-2">
-// //                 KYC ID: <span className="font-medium">{acc.kycId}</span>
-// //               </p>
-
-// //               {/* Savings Account */}
-// //               {acc.savingsDetails && (
-// //                 <div className="mt-3 text-sm text-gray-700">
-// //                   <p>Interest Rate: {acc.savingsDetails.interestRate}%</p>
-// //                   <p>
-// //                     Withdrawal Limit: {acc.savingsDetails.withdrawalLimitPerMonth}/month
-// //                   </p>
-// //                   <p>
-// //                     Cheque Book:{" "}
-// //                     {acc.savingsDetails.chequeBookAvailable
-// //                       ? "Available"
-// //                       : "Not Available"}
-// //                   </p>
-// //                 </div>
-// //               )}
-
-// //               {/* Current Account */}
-// //               {acc.currentDetails && (
-// //                 <div className="mt-3 text-sm text-gray-700">
-// //                   <p>Business: {acc.currentDetails.businessName}</p>
-// //                   <p>Overdraft Limit: ₹{acc.currentDetails.overdraftLimit}</p>
-// //                   <p>Service Charge: ₹{acc.currentDetails.monthlyServiceCharge}</p>
-// //                   <p>
-// //                     Overdraft Facility:{" "}
-// //                     {acc.currentDetails.hasOverdraftFacility ? "Yes" : "No"}
-// //                   </p>
-// //                 </div>
-// //               )}
-
-// //               {/* Buttons */}
-// //               <div className="flex justify-between mt-5">
-// //                 <button
-// //                   onClick={() => toast.info(`Balance: ₹${acc.balance}`)}
-// //                   className="flex items-center gap-2 bg-green-100 hover:bg-green-200 text-green-700 px-3 py-2 rounded-lg transition-all"
-// //                 >
-// //                   <FaMoneyBillWave /> Check Balance
-// //                 </button>
-// //                 <button
-// //                   onClick={() => handleDelete(acc.id)}
-// //                   className="flex items-center gap-2 bg-red-100 hover:bg-red-200 text-red-700 px-3 py-2 rounded-lg transition-all"
-// //                 >
-// //                   <FaTrashAlt /> Delete
-// //                 </button>
-// //               </div>
-// //             </motion.div>
-// //           ))}
-// //         </div>
-// //       ) : (
-// //         <p className="text-center text-gray-500">No accounts found.</p>
-// //       )}
-// //     </motion.div>
-// //   );
-// // };
-
-// // export default Account;
-
-// // import React, { useEffect, useState } from "react";
-// // import axios from "axios";
-// // import { motion } from "framer-motion";
-// // import { FaSearch, FaPlus, FaMoneyBillWave } from "react-icons/fa";
-// // import toast from "react-hot-toast";
-// // import AccountForm from "../../components/Account/AccountForm";
-
-// // const Account = () => {
-// //   const [accounts, setAccounts] = useState([]);
-// //   const [search, setSearch] = useState("");
-// //   const [showForm, setShowForm] = useState(false);
-// //   const [loading, setLoading] = useState(false);
-// //   const [visibleBalances, setVisibleBalances] = useState({}); // {accountId: balance}
-
-// //   const BASE_URL =
-// //     import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
-// //   const cifNumber =
-// //     JSON.parse(localStorage.getItem("auth"))?.customer?.cifNumber || "";
-
-// //   // Fetch accounts
-// //   const fetchAccounts = async () => {
-// //     if (!cifNumber) return;
-// //     try {
-// //       setLoading(true);
-// //       const { data } = await axios.get(`${BASE_URL}/accounts/cif/${cifNumber}`);
-// //       setAccounts(data);
-// //     } catch (err) {
-// //       toast.error("Failed to fetch accounts");
-// //     } finally {
-// //       setLoading(false);
-// //     }
-// //   };
-
-// //   useEffect(() => {
-// //     fetchAccounts();
-// //   }, []);
-
-// //   // Handle balance check
-// //   const handleCheckBalance = async (accId) => {
-// //     const pin = prompt("Enter your 4-digit PIN:");
-// //     if (!pin || pin.length !== 4 || isNaN(pin)) {
-// //       toast.error("Please enter a valid 4-digit PIN");
-// //       return;
-// //     }
-
-// //     try {
-// //       const { data } = await axios.get(`${BASE_URL}/accounts/pin/${pin}/balance`);
-// //       setVisibleBalances((prev) => ({ ...prev, [accId]: data }));
-// //       toast.success("Balance retrieved successfully!");
-// //     } catch (err) {
-// //       toast.error("Invalid PIN or failed to fetch balance");
-// //     }
-// //   };
-
-// //   // Filter accounts
-// //   const filteredAccounts = accounts.filter((acc) =>
-// //     acc.accountNumber.toLowerCase().includes(search.toLowerCase())
-// //   );
-
-// //   return (
-// //     <motion.div
-// //       className="p-6 bg-gray-50 min-h-screen"
-// //       initial={{ opacity: 0 }}
-// //       animate={{ opacity: 1 }}
-// //     >
-// //       {/* Header */}
-// //       <div className="flex justify-between items-center mb-6">
-// //         <h2 className="text-3xl font-semibold text-gray-800">My Accounts</h2>
-// //         <button
-// //           onClick={() => setShowForm(!showForm)}
-// //           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition-all"
-// //         >
-// //           <FaPlus /> {showForm ? "Close Form" : "Open New Account"}
-// //         </button>
-// //       </div>
-
-// //       {/* Form */}
-// //       {showForm && (
-// //         <motion.div
-// //           className="bg-white rounded-xl shadow-lg p-6 mb-6"
-// //           initial={{ opacity: 0, y: -20 }}
-// //           animate={{ opacity: 1, y: 0 }}
-// //         >
-// //           <AccountForm
-// //             onSuccess={() => {
-// //               fetchAccounts();
-// //               setShowForm(false);
-// //             }}
-// //           />
-// //         </motion.div>
-// //       )}
-
-// //       {/* Search */}
-// //       <div className="flex items-center bg-white shadow-md rounded-lg p-3 mb-6">
-// //         <FaSearch className="text-gray-400 mr-2" />
-// //         <input
-// //           type="text"
-// //           placeholder="Search by Account Number..."
-// //           value={search}
-// //           onChange={(e) => setSearch(e.target.value)}
-// //           className="flex-1 outline-none text-gray-700"
-// //         />
-// //       </div>
-
-// //       {/* Accounts */}
-// //       {loading ? (
-// //         <p className="text-center text-gray-500">Loading accounts...</p>
-// //       ) : filteredAccounts.length > 0 ? (
-// //         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-// //           {filteredAccounts.map((acc) => (
-// //             <motion.div
-// //               key={acc.id}
-// //               className="bg-white shadow-lg rounded-2xl p-5 border border-gray-100 hover:shadow-2xl transition-all"
-// //               whileHover={{ scale: 1.02 }}
-// //             >
-// //               <div className="flex justify-between items-center mb-2">
-// //                 <h3 className="text-xl font-semibold text-gray-800">
-// //                   {acc.accountType} ACCOUNT
-// //                 </h3>
-// //                 <span
-// //                   className={`text-sm font-medium px-3 py-1 rounded-full ${
-// //                     acc.status === "ACTIVE"
-// //                       ? "bg-green-100 text-green-700"
-// //                       : "bg-yellow-100 text-yellow-700"
-// //                   }`}
-// //                 >
-// //                   {acc.status}
-// //                 </span>
-// //               </div>
-
-// //               <p className="text-gray-600 text-sm mb-2">
-// //                 Account No:{" "}
-// //                 <span className="font-medium">{acc.accountNumber}</span>
-// //               </p>
-// //               <p className="text-gray-600 text-sm mb-2">
-// //                 CIF: <span className="font-medium">{acc.cifNumber}</span>
-// //               </p>
-
-// //               {/* Show balance if retrieved */}
-// //               {visibleBalances[acc.id] ? (
-// //                 <p className="text-gray-700 text-base font-semibold mb-2">
-// //                   Balance: ₹{visibleBalances[acc.id]}
-// //                 </p>
-// //               ) : (
-// //                 <p className="text-gray-500 text-sm mb-2 italic">
-// //                   Balance hidden (check using PIN)
-// //                 </p>
-// //               )}
-
-// //               {/* Savings Account */}
-// //               {acc.savingsDetails && (
-// //                 <div className="mt-3 text-sm text-gray-700">
-// //                   <p>Interest Rate: {acc.savingsDetails.interestRate}%</p>
-// //                   <p>
-// //                     Withdrawal Limit:{" "}
-// //                     {acc.savingsDetails.withdrawalLimitPerMonth}/month
-// //                   </p>
-// //                   <p>
-// //                     Cheque Book:{" "}
-// //                     {acc.savingsDetails.chequeBookAvailable
-// //                       ? "Available"
-// //                       : "Not Available"}
-// //                   </p>
-// //                 </div>
-// //               )}
-
-// //               {/* Current Account */}
-// //               {acc.currentDetails && (
-// //                 <div className="mt-3 text-sm text-gray-700">
-// //                   <p>Business: {acc.currentDetails.businessName}</p>
-// //                   <p>Overdraft Limit: ₹{acc.currentDetails.overdraftLimit}</p>
-// //                   <p>Service Charge: ₹{acc.currentDetails.monthlyServiceCharge}</p>
-// //                   <p>
-// //                     Overdraft Facility:{" "}
-// //                     {acc.currentDetails.hasOverdraftFacility ? "Yes" : "No"}
-// //                   </p>
-// //                 </div>
-// //               )}
-
-// //               {/* Buttons */}
-// //               <div className="flex justify-center mt-5">
-// //                 <button
-// //                   onClick={() => handleCheckBalance(acc.id)}
-// //                   className="flex items-center gap-2 bg-green-100 hover:bg-green-200 text-green-700 px-4 py-2 rounded-lg transition-all"
-// //                 >
-// //                   <FaMoneyBillWave /> Check Balance
-// //                 </button>
-// //               </div>
-// //             </motion.div>
-// //           ))}
-// //         </div>
-// //       ) : (
-// //         <p className="text-center text-gray-500">No accounts found.</p>
-// //       )}
-// //     </motion.div>
-// //   );
-// // };
-
-// // export default Account;
-
-// import React, { useEffect, useState } from "react";
-// import axios from "axios";
-// import { motion } from "framer-motion";
-// import { FaSearch, FaPlus, FaMoneyBillWave, FaKey } from "react-icons/fa";
-// import toast from "react-hot-toast";
-// import AccountForm from "../../components/Account/AccountForm";
-// import ChangePinForm from "../../components/Account/ChangePinForm";
-
-// const Account = () => {
-//   const [accounts, setAccounts] = useState([]);
-//   const [search, setSearch] = useState("");
-//   const [showForm, setShowForm] = useState(false);
-//   const [loading, setLoading] = useState(false);
-//   const [visibleBalances, setVisibleBalances] = useState({});
-//   const [selectedAccountForPin, setSelectedAccountForPin] = useState(null);
-
-//   // For PIN Center Form
-//   const [enteredPin, setEnteredPin] = useState("");
-//   const [selectedAccountForBalance, setSelectedAccountForBalance] = useState(null);
-
-//   const BASE_URL =
-//     import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
-//   const cifNumber =
-//     JSON.parse(localStorage.getItem("auth"))?.customer?.cifNumber || "";
-
-//   // Fetch accounts
-//   const fetchAccounts = async () => {
-//     if (!cifNumber) return;
-//     try {
-//       setLoading(true);
-//       const { data } = await axios.get(`${BASE_URL}/accounts/cif/${cifNumber}`);
-//       setAccounts(data);
-//     } catch (err) {
-//       toast.error("Failed to fetch accounts");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   useEffect(() => {
-//     fetchAccounts();
-//   }, []);
-
-//   // Open Center PIN Form
-//   const handleCheckBalance = (accId) => {
-//     if (selectedAccountForBalance === accId) {
-//       setSelectedAccountForBalance(null);
-//       setEnteredPin("");
-//     } else {
-//       setSelectedAccountForBalance(accId);
-//       setEnteredPin("");
-//     }
-//   };
-
-//   // Submit PIN
-//   const submitPin = async (accId) => {
-//     if (!enteredPin || enteredPin.length !== 4 || isNaN(enteredPin)) {
-//       toast.error("Please enter a valid 4-digit PIN");
-//       return;
-//     }
-
-//     try {
-//       const { data } = await axios.get(
-//         `${BASE_URL}/accounts/pin/${enteredPin}/balance`
-//       );
-//       setVisibleBalances((prev) => ({
-//         ...prev,
-//         [accId]: data,
-//       }));
-//       toast.success("Balance retrieved successfully!");
-//       setSelectedAccountForBalance(null);
-//       setEnteredPin("");
-//     } catch (err) {
-//       toast.error("Invalid PIN or failed to fetch balance");
-//     }
-//   };
-
-//   // Filter accounts
-//   const filteredAccounts = accounts.filter((acc) =>
-//     acc.accountNumber?.toLowerCase().includes(search.toLowerCase())
-//   );
-
-//   return (
-//     <motion.div
-//       className="p-6 bg-gray-50 min-h-screen relative"
-//       initial={{ opacity: 0 }}
-//       animate={{ opacity: 1 }}
-//     >
-//       {/* Header */}
-//       <div className="flex justify-between items-center mb-6">
-//         <h2 className="text-3xl font-semibold text-gray-800">My Accounts</h2>
-//         <button
-//           onClick={() => setShowForm(!showForm)}
-//           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition-all"
-//         >
-//           <FaPlus /> {showForm ? "Close Form" : "Open New Account"}
-//         </button>
-//       </div>
-
-//       {/* Form */}
-//       {showForm && (
-//         <motion.div
-//           className="bg-white rounded-xl shadow-lg p-6 mb-6"
-//           initial={{ opacity: 0, y: -20 }}
-//           animate={{ opacity: 1, y: 0 }}
-//         >
-//           <AccountForm
-//             onSuccess={() => {
-//               fetchAccounts();
-//               setShowForm(false);
-//             }}
-//           />
-//         </motion.div>
-//       )}
-
-//       {/* Search */}
-//       <div className="flex items-center bg-white shadow-md rounded-lg p-3 mb-6">
-//         <FaSearch className="text-gray-400 mr-2" />
-//         <input
-//           type="text"
-//           placeholder="Search by Account Number..."
-//           value={search}
-//           onChange={(e) => setSearch(e.target.value)}
-//           className="flex-1 outline-none text-gray-700"
-//         />
-//       </div>
-
-//       {/* Accounts */}
-//       {loading ? (
-//         <p className="text-center text-gray-500">Loading accounts...</p>
-//       ) : filteredAccounts.length > 0 ? (
-//         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-//           {filteredAccounts.map((acc) => (
-//             <motion.div
-//               key={acc.id}
-//               className="bg-white shadow-lg rounded-2xl p-5 border border-gray-100 hover:shadow-2xl transition-all"
-//               whileHover={{ scale: 1.02 }}
-//             >
-//               {/* Header */}
-//               <div className="flex justify-between items-center mb-2">
-//                 <h3 className="text-xl font-semibold text-gray-800">
-//                   {acc.accountType} ACCOUNT
-//                 </h3>
-//                 <span
-//                   className={`text-sm font-medium px-3 py-1 rounded-full ${
-//                     acc.status === "ACTIVE"
-//                       ? "bg-green-100 text-green-700"
-//                       : "bg-yellow-100 text-yellow-700"
-//                   }`}
-//                 >
-//                   {acc.status}
-//                 </span>
-//               </div>
-
-//               {/* Basic Info */}
-//               <p className="text-gray-600 text-sm mb-2">
-//                 Account No:{" "}
-//                 <span className="font-medium">{acc.accountNumber}</span>
-//               </p>
-//               <p className="text-gray-600 text-sm mb-2">
-//                 CIF: <span className="font-medium">{acc.cifNumber}</span>
-//               </p>
-
-//               {/* Balance */}
-//               {visibleBalances[acc.id] ? (
-//                 <p className="text-gray-700 text-base font-semibold mb-2">
-//                   Balance: ₹{visibleBalances[acc.id]}
-//                 </p>
-//               ) : (
-//                 <p className="text-gray-500 text-sm mb-2 italic">
-//                   Balance hidden (check using PIN)
-//                 </p>
-//               )}
-
-//               {/* Occupation & Income */}
-//               <div className="mt-3 text-sm text-gray-700">
-//                 {acc.occupation && (
-//                   <p>
-//                     Occupation:{" "}
-//                     <span className="font-medium">{acc.occupation}</span>
-//                   </p>
-//                 )}
-//                 {acc.sourceOfIncome && (
-//                   <p>
-//                     Source of Income:{" "}
-//                     <span className="font-medium">{acc.sourceOfIncome}</span>
-//                   </p>
-//                 )}
-//                 {acc.grossAnnualIncome && (
-//                   <p>
-//                     Gross Annual Income: ₹
-//                     <span className="font-medium">{acc.grossAnnualIncome}</span>
-//                   </p>
-//                 )}
-//               </div>
-
-//               {/* Nominee Info */}
-//               {(acc.nomineeName || acc.nomineeRelation) && (
-//                 <div className="mt-3 text-sm text-gray-700 border-t border-gray-200 pt-2">
-//                   <p className="font-medium text-gray-800 mb-1">
-//                     Nominee Details:
-//                   </p>
-//                   <p>Name: {acc.nomineeName}</p>
-//                   <p>Relation: {acc.nomineeRelation}</p>
-//                   {acc.nomineeAge && <p>Age: {acc.nomineeAge}</p>}
-//                   {acc.nomineeContact && <p>Contact: {acc.nomineeContact}</p>}
-//                 </div>
-//               )}
-
-//               {/* Savings Account */}
-//               {acc.savingsDetails && (
-//                 <div className="mt-3 text-sm text-gray-700 border-t border-gray-200 pt-2">
-//                   <p className="font-medium text-gray-800 mb-1">
-//                     Savings Details:
-//                   </p>
-//                   <p>Interest Rate: {acc.savingsDetails.interestRate}%</p>
-//                   <p>
-//                     Withdrawal Limit:{" "}
-//                     {acc.savingsDetails.withdrawalLimitPerMonth}/month
-//                   </p>
-//                   <p>
-//                     Cheque Book:{" "}
-//                     {acc.savingsDetails.chequeBookAvailable
-//                       ? "Available"
-//                       : "Not Available"}
-//                   </p>
-//                 </div>
-//               )}
-
-//               {/* Current Account */}
-//               {acc.currentDetails && (
-//                 <div className="mt-3 text-sm text-gray-700 border-t border-gray-200 pt-2">
-//                   <p className="font-medium text-gray-800 mb-1">
-//                     Current Details:
-//                   </p>
-//                   <p>Business: {acc.currentDetails.businessName}</p>
-//                   <p>Overdraft Limit: ₹{acc.currentDetails.overdraftLimit}</p>
-//                   <p>
-//                     Service Charge: ₹{acc.currentDetails.monthlyServiceCharge}
-//                   </p>
-//                   <p>
-//                     Overdraft Facility:{" "}
-//                     {acc.currentDetails.hasOverdraftFacility ? "Yes" : "No"}
-//                   </p>
-//                 </div>
-//               )}
-
-//               {/* Buttons */}
-//               <div className="flex justify-center gap-3 mt-5">
-//                 <button
-//                   onClick={() => handleCheckBalance(acc.id)}
-//                   className="flex items-center gap-2 bg-green-100 hover:bg-green-200 text-green-700 px-4 py-2 rounded-lg transition-all"
-//                 >
-//                   <FaMoneyBillWave /> Check Balance
-//                 </button>
-
-//                 <button
-//                   onClick={() => setSelectedAccountForPin(acc.accountNumber)}
-//                   className="flex items-center gap-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 px-4 py-2 rounded-lg transition-all"
-//                 >
-//                   <FaKey /> Change PIN
-//                 </button>
-//               </div>
-//             </motion.div>
-//           ))}
-//         </div>
-//       ) : (
-//         <p className="text-center text-gray-500">No accounts found.</p>
-//       )}
-
-//       {/* Change PIN Modal */}
-//       {selectedAccountForPin && (
-//         <ChangePinForm
-//           accountNumber={selectedAccountForPin}
-//           onSuccess={() => {
-//             setSelectedAccountForPin(null);
-//             fetchAccounts();
-//           }}
-//           onCancel={() => setSelectedAccountForPin(null)}
-//         />
-//       )}
-
-//       {/* Center Fixed PIN Form */}
-//       {selectedAccountForBalance && (
-//         <motion.div
-//           className="fixed inset-0  bg-opacity-40 flex items-center justify-center z-50"
-//           initial={{ opacity: 0 }}
-//           animate={{ opacity: 1 }}
-//         >
-//           <motion.div
-//             className="bg-white rounded-2xl shadow-xl p-8 w-80 text-center relative"
-//             initial={{ scale: 0.9, opacity: 0 }}
-//             animate={{ scale: 1, opacity: 1 }}
-//           >
-//             <h3 className="text-xl font-semibold text-gray-800 mb-4">
-//               Enter Your 4-Digit PIN
-//             </h3>
-
-//             <input
-//               type="password"
-//               maxLength={4}
-//               value={enteredPin}
-//               onChange={(e) => setEnteredPin(e.target.value)}
-//               className="w-full text-center text-xl border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-400 outline-none mb-6"
-//               placeholder="••••"
-//             />
-
-//             <div className="flex justify-center gap-3">
-//               <button
-//                 onClick={() => submitPin(selectedAccountForBalance)}
-//                 className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-all"
-//               >
-//                 Submit
-//               </button>
-//               <button
-//                 onClick={() => {
-//                   setSelectedAccountForBalance(null);
-//                   setEnteredPin("");
-//                 }}
-//                 className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg transition-all"
-//               >
-//                 Cancel
-//               </button>
-//             </div>
-//           </motion.div>
-//         </motion.div>
-//       )}
-//     </motion.div>
-//   );
-// };
-
-// export default Account;
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { motion } from "framer-motion";
-import { FaSearch, FaPlus, FaMoneyBillWave, FaKey } from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
+import { FaSearch, FaPlus, FaMoneyBillWave, FaKey, FaTimes, FaWallet, FaUniversity, FaBriefcase, FaChartLine } from "react-icons/fa";
 import toast from "react-hot-toast";
 import AccountForm from "../../components/Account/AccountForm";
 import ChangePinForm from "../../components/Account/ChangePinForm";
@@ -740,7 +14,6 @@ const Account = () => {
   const [visibleBalances, setVisibleBalances] = useState({});
   const [selectedAccountForPin, setSelectedAccountForPin] = useState(null);
 
-  // For PIN Center Form
   const [enteredPin, setEnteredPin] = useState("");
   const [selectedAccountForBalance, setSelectedAccountForBalance] = useState(null);
   const [selectedAccountNumber, setSelectedAccountNumber] = useState(null);
@@ -750,15 +23,18 @@ const Account = () => {
   const cifNumber =
     JSON.parse(localStorage.getItem("auth"))?.customer?.cifNumber || "";
 
-  // Fetch accounts
   const fetchAccounts = async () => {
     if (!cifNumber) return;
     try {
       setLoading(true);
       const { data } = await axios.get(`${BASE_URL}/accounts/cif/${cifNumber}`);
       setAccounts(data);
-    } catch (err) {
-      toast.error("Failed to fetch accounts");
+
+      if (data.length === 0) {
+        toast.error("No accounts found for the provided CIF number.");
+      }
+    } catch {
+      // ignore error
     } finally {
       setLoading(false);
     }
@@ -768,7 +44,6 @@ const Account = () => {
     fetchAccounts();
   }, []);
 
-  // Open Center PIN Form
   const handleCheckBalance = (accId, accNumber) => {
     if (selectedAccountForBalance === accId) {
       setSelectedAccountForBalance(null);
@@ -783,7 +58,6 @@ const Account = () => {
     }
   };
 
-  // Submit PIN (with account number)
   const submitPin = async (accId) => {
     if (!enteredPin || enteredPin.length !== 4 || isNaN(enteredPin)) {
       toast.error("Please enter a valid 4-digit PIN");
@@ -812,7 +86,8 @@ const Account = () => {
       setSelectedAccountForBalance(null);
       setEnteredPin("");
       localStorage.removeItem("selectedAccountNumber");
-    } catch (err) {
+    } catch {
+      // ignore error
       toast.error("Invalid PIN or failed to fetch balance");
     }
   };
@@ -822,254 +97,323 @@ const Account = () => {
     acc.accountNumber?.toLowerCase().includes(search.toLowerCase())
   );
 
+  // Get account type gradient
+  const getAccountGradient = (type) => {
+    switch (type?.toUpperCase()) {
+      case "SAVINGS":
+        return "from-blue-500 to-blue-600";
+      case "CURRENT":
+        return "from-purple-500 to-purple-600";
+      case "SALARY":
+        return "from-green-500 to-green-600";
+      default:
+        return "from-gray-500 to-gray-600";
+    }
+  };
+
+  // Get account icon
+  const getAccountIcon = (type) => {
+    switch (type?.toUpperCase()) {
+      case "SAVINGS":
+        return <FaWallet className="text-2xl" />;
+      case "CURRENT":
+        return <FaBriefcase className="text-2xl" />;
+      case "SALARY":
+        return <FaChartLine className="text-2xl" />;
+      default:
+        return <FaUniversity className="text-2xl" />;
+    }
+  };
+
   return (
     <motion.div
-      className="p-6 bg-gray-50 min-h-screen relative"
+      className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-3xl font-semibold text-gray-800">My Accounts</h2>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition-all"
-        >
-          <FaPlus /> {showForm ? "Close Form" : "Open New Account"}
-        </button>
-      </div>
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">My Accounts</h1>
+            <p className="text-gray-600">Manage your bank accounts and balances</p>
+          </div>
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5"
+          >
+            {showForm ? <FaTimes /> : <FaPlus />}
+            {showForm ? "Close Form" : "Open New Account"}
+          </button>
+        </div>
 
-      {/* Form */}
-      {showForm && (
-        <motion.div
-          className="bg-white rounded-xl shadow-lg p-6 mb-6"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <AccountForm
-            onSuccess={() => {
-              fetchAccounts();
-              setShowForm(false);
-            }}
-          />
-        </motion.div>
-      )}
-
-      {/* Search */}
-      <div className="flex items-center bg-white shadow-md rounded-lg p-3 mb-6">
-        <FaSearch className="text-gray-400 mr-2" />
-        <input
-          type="text"
-          placeholder="Search by Account Number..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 outline-none text-gray-700"
-        />
-      </div>
-
-      {/* Accounts */}
-      {loading ? (
-        <p className="text-center text-gray-500">Loading accounts...</p>
-      ) : filteredAccounts.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filteredAccounts.map((acc) => (
+        {/* Form */}
+        <AnimatePresence>
+          {showForm && (
             <motion.div
-              key={acc.id}
-              className="bg-white shadow-lg rounded-2xl p-5 border border-gray-100 hover:shadow-2xl transition-all"
-              whileHover={{ scale: 1.02 }}
+              className="bg-white rounded-2xl shadow-xl p-6 mb-8 border border-gray-100"
+              initial={{ opacity: 0, y: -20, height: 0 }}
+              animate={{ opacity: 1, y: 0, height: "auto" }}
+              exit={{ opacity: 0, y: -20, height: 0 }}
+              transition={{ duration: 0.3 }}
             >
-              {/* Header */}
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="text-xl font-semibold text-gray-800">
-                  {acc.accountType} ACCOUNT
-                </h3>
-                <span
-                  className={`text-sm font-medium px-3 py-1 rounded-full ${
-                    acc.status === "ACTIVE"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-yellow-100 text-yellow-700"
-                  }`}
-                >
-                  {acc.status}
-                </span>
+              <AccountForm
+                onSuccess={() => {
+                  fetchAccounts();
+                  setShowForm(false);
+                }}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Search */}
+        <div className="flex items-center bg-white shadow-md rounded-xl p-4 mb-8 border border-gray-100">
+          <FaSearch className="text-gray-400 mr-3 text-lg" />
+          <input
+            type="text"
+            placeholder="Search by account number..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="flex-1 outline-none text-gray-700 placeholder-gray-400"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch("")}
+              className="ml-2 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <FaTimes />
+            </button>
+          )}
+        </div>
+
+        {/* Accounts Grid */}
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-white rounded-2xl p-6 shadow-lg animate-pulse">
+                <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-2/3 mb-4"></div>
+                <div className="h-10 bg-gray-200 rounded w-full"></div>
               </div>
+            ))}
+          </div>
+        ) : filteredAccounts.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {filteredAccounts.map((acc) => (
+              <motion.div
+                key={acc.id}
+                className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                whileHover={{ y: -4 }}
+              >
+                {/* Card Header with Gradient */}
+                <div className={`bg-gradient-to-r ${getAccountGradient(acc.accountType)} p-6 text-white`}>
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="bg-white/20 backdrop-blur-sm p-3 rounded-xl">
+                      {getAccountIcon(acc.accountType)}
+                    </div>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${acc.status === "ACTIVE"
+                        ? "bg-green-500/30 text-white"
+                        : acc.status === "PENDING"
+                          ? "bg-amber-500/30 text-white"
+                          : "bg-red-500/30 text-white"
+                        }`}
+                    >
+                      {acc.status}
+                    </span>
+                  </div>
+                  <h3 className="text-2xl font-bold mb-1">{acc.accountType} ACCOUNT</h3>
+                  <p className="text-white/80 text-sm">Account No: {acc.accountNumber}</p>
+                </div>
 
-              {/* Basic Info */}
-              <p className="text-gray-600 text-sm mb-2">
-                Account No:{" "}
-                <span className="font-medium">{acc.accountNumber}</span>
-              </p>
-              <p className="text-gray-600 text-sm mb-2">
-                CIF: <span className="font-medium">{acc.cifNumber}</span>
-              </p>
+                {/* Card Body */}
+                <div className="p-6">
+                  <div className="mb-4">
+                    <p className="text-gray-500 text-xs mb-1">CIF Number</p>
+                    <p className="text-gray-900 font-semibold">{acc.cifNumber}</p>
+                  </div>
 
-              {/* Balance */}
-              {visibleBalances[acc.id] ? (
-                <p className="text-gray-700 text-base font-semibold mb-2">
-                  Balance: ₹{visibleBalances[acc.id]}
-                </p>
-              ) : (
-                <p className="text-gray-500 text-sm mb-2 italic">
-                  Balance hidden (check using PIN)
-                </p>
-              )}
+                  {/* Balance */}
+                  <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-4 mb-4">
+                    {visibleBalances[acc.id] ? (
+                      <div>
+                        <p className="text-gray-600 text-xs mb-1">Available Balance</p>
+                        <p className="text-3xl font-bold text-gray-900">₹{visibleBalances[acc.id].toLocaleString()}</p>
+                      </div>
+                    ) : (
+                      <div className="text-center py-2">
+                        <p className="text-gray-500 text-sm">Balance hidden</p>
+                        <p className="text-gray-400 text-xs">Enter PIN to view</p>
+                      </div>
+                    )}
+                  </div>
 
-              {/* Occupation & Income */}
-              <div className="mt-3 text-sm text-gray-700">
-                {acc.occupation && (
-                  <p>
-                    Occupation:{" "}
-                    <span className="font-medium">{acc.occupation}</span>
-                  </p>
-                )}
-                {acc.sourceOfIncome && (
-                  <p>
-                    Source of Income:{" "}
-                    <span className="font-medium">{acc.sourceOfIncome}</span>
-                  </p>
-                )}
-                {acc.grossAnnualIncome && (
-                  <p>
-                    Gross Annual Income: ₹
-                    <span className="font-medium">{acc.grossAnnualIncome}</span>
-                  </p>
-                )}
+                  {/* Additional Details */}
+                  {(acc.occupation || acc.sourceOfIncome || acc.grossAnnualIncome) && (
+                    <div className="mb-4 space-y-2 text-sm">
+                      {acc.occupation && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Occupation:</span>
+                          <span className="text-gray-900 font-medium">{acc.occupation}</span>
+                        </div>
+                      )}
+                      {acc.sourceOfIncome && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Income Source:</span>
+                          <span className="text-gray-900 font-medium">{acc.sourceOfIncome}</span>
+                        </div>
+                      )}
+                      {acc.grossAnnualIncome && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Annual Income:</span>
+                          <span className="text-gray-900 font-medium">₹{acc.grossAnnualIncome.toLocaleString()}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Nominee Info */}
+                  {(acc.nomineeName || acc.nomineeRelation) && (
+                    <div className="border-t border-gray-100 pt-4 mb-4">
+                      <p className="text-gray-700 font-semibold text-sm mb-2">Nominee Details</p>
+                      <div className="space-y-1 text-sm">
+                        {acc.nomineeName && <p className="text-gray-600">Name: <span className="text-gray-900">{acc.nomineeName}</span></p>}
+                        {acc.nomineeRelation && <p className="text-gray-600">Relation: <span className="text-gray-900">{acc.nomineeRelation}</span></p>}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => handleCheckBalance(acc.id, acc.accountNumber)}
+                      className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg font-medium"
+                    >
+                      <FaMoneyBillWave />
+                      Balance
+                    </button>
+                    <button
+                      onClick={() => setSelectedAccountForPin(acc.accountNumber)}
+                      className="flex-1 flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-3 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg font-medium"
+                    >
+                      <FaKey />
+                      PIN
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          <motion.div
+            className="bg-white rounded-2xl shadow-lg p-12 text-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <div className="max-w-md mx-auto">
+              <div className="bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <FaUniversity className="text-4xl text-blue-600" />
               </div>
-
-              {/* Nominee Info */}
-              {(acc.nomineeName || acc.nomineeRelation) && (
-                <div className="mt-3 text-sm text-gray-700 border-t border-gray-200 pt-2">
-                  <p className="font-medium text-gray-800 mb-1">
-                    Nominee Details:
-                  </p>
-                  <p>Name: {acc.nomineeName}</p>
-                  <p>Relation: {acc.nomineeRelation}</p>
-                  {acc.nomineeAge && <p>Age: {acc.nomineeAge}</p>}
-                  {acc.nomineeContact && <p>Contact: {acc.nomineeContact}</p>}
-                </div>
-              )}
-
-              {/* Savings Account */}
-              {acc.savingsDetails && (
-                <div className="mt-3 text-sm text-gray-700 border-t border-gray-200 pt-2">
-                  <p className="font-medium text-gray-800 mb-1">
-                    Savings Details:
-                  </p>
-                  <p>Interest Rate: {acc.savingsDetails.interestRate}%</p>
-                  <p>
-                    Withdrawal Limit:{" "}
-                    {acc.savingsDetails.withdrawalLimitPerMonth}/month
-                  </p>
-                  <p>
-                    Cheque Book:{" "}
-                    {acc.savingsDetails.chequeBookAvailable
-                      ? "Available"
-                      : "Not Available"}
-                  </p>
-                </div>
-              )}
-
-              {/* Current Account */}
-              {acc.currentDetails && (
-                <div className="mt-3 text-sm text-gray-700 border-t border-gray-200 pt-2">
-                  <p className="font-medium text-gray-800 mb-1">
-                    Current Details:
-                  </p>
-                  <p>Business: {acc.currentDetails.businessName}</p>
-                  <p>Overdraft Limit: ₹{acc.currentDetails.overdraftLimit}</p>
-                  <p>
-                    Service Charge: ₹{acc.currentDetails.monthlyServiceCharge}
-                  </p>
-                  <p>
-                    Overdraft Facility:{" "}
-                    {acc.currentDetails.hasOverdraftFacility ? "Yes" : "No"}
-                  </p>
-                </div>
-              )}
-
-              {/* Buttons */}
-              <div className="flex justify-center gap-3 mt-5">
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">No Accounts Found</h3>
+              <p className="text-gray-600 mb-6">
+                {search
+                  ? "No accounts match your search. Try a different account number."
+                  : "You don't have any accounts yet. Open a new account to get started!"}
+              </p>
+              {!search && (
                 <button
-                  onClick={() =>
-                    handleCheckBalance(acc.id, acc.accountNumber)
-                  }
-                  className="flex items-center gap-2 bg-green-100 hover:bg-green-200 text-green-700 px-4 py-2 rounded-lg transition-all"
+                  onClick={() => setShowForm(true)}
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                 >
-                  <FaMoneyBillWave /> Check Balance
+                  <FaPlus />
+                  Open New Account
                 </button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </div>
 
+      {/* Change PIN Modal */}
+      <AnimatePresence>
+        {selectedAccountForPin && (
+          <ChangePinForm
+            accountNumber={selectedAccountForPin}
+            onSuccess={() => {
+              setSelectedAccountForPin(null);
+              fetchAccounts();
+            }}
+            onCancel={() => setSelectedAccountForPin(null)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* PIN Entry Modal */}
+      <AnimatePresence>
+        {selectedAccountForBalance && (
+          <motion.div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => {
+              setSelectedAccountForBalance(null);
+              setEnteredPin("");
+              localStorage.removeItem("selectedAccountNumber");
+            }}
+          >
+            <motion.div
+              className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="text-center mb-6">
+                <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FaKey className="text-3xl text-blue-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">Enter PIN</h3>
+                <p className="text-gray-600">Enter your 4-digit PIN to view balance</p>
+              </div>
+
+              <input
+                type="password"
+                maxLength={4}
+                value={enteredPin}
+                onChange={(e) => setEnteredPin(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && submitPin(selectedAccountForBalance)}
+                className="w-full text-center text-3xl tracking-widest border-2 border-gray-200 rounded-xl p-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none mb-6 font-mono"
+                placeholder="••••"
+                autoFocus
+              />
+
+              <div className="flex gap-3">
                 <button
-                  onClick={() => setSelectedAccountForPin(acc.accountNumber)}
-                  className="flex items-center gap-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 px-4 py-2 rounded-lg transition-all"
+                  onClick={() => submitPin(selectedAccountForBalance)}
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg font-semibold"
                 >
-                  <FaKey /> Change PIN
+                  Submit
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedAccountForBalance(null);
+                    setEnteredPin("");
+                    localStorage.removeItem("selectedAccountNumber");
+                  }}
+                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl transition-all duration-300 font-semibold"
+                >
+                  Cancel
                 </button>
               </div>
             </motion.div>
-          ))}
-        </div>
-      ) : (
-        <p className="text-center text-gray-500">No accounts found.</p>
-      )}
-
-      {/* Change PIN Modal */}
-      {selectedAccountForPin && (
-        <ChangePinForm
-          accountNumber={selectedAccountForPin}
-          onSuccess={() => {
-            setSelectedAccountForPin(null);
-            fetchAccounts();
-          }}
-          onCancel={() => setSelectedAccountForPin(null)}
-        />
-      )}
-
-      {/* Center Fixed PIN Form */}
-      {selectedAccountForBalance && (
-        <motion.div
-          className="fixed inset-0  flex items-center justify-center z-50"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-        >
-          <motion.div
-            className="bg-white rounded-2xl shadow-xl p-8 w-80 text-center relative"
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-          >
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">
-              Enter Your 4-Digit PIN
-            </h3>
-
-            <input
-              type="password"
-              maxLength={4}
-              value={enteredPin}
-              onChange={(e) => setEnteredPin(e.target.value)}
-              className="w-full text-center text-xl border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-400 outline-none mb-6"
-              placeholder="••••"
-            />
-
-            <div className="flex justify-center gap-3">
-              <button
-                onClick={() => submitPin(selectedAccountForBalance)}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-all"
-              >
-                Submit
-              </button>
-              <button
-                onClick={() => {
-                  setSelectedAccountForBalance(null);
-                  setEnteredPin("");
-                  localStorage.removeItem("selectedAccountNumber");
-                }}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg transition-all"
-              >
-                Cancel
-              </button>
-            </div>
           </motion.div>
-        </motion.div>
-      )}
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

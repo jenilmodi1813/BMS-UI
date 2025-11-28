@@ -4,15 +4,15 @@ import LoanCard from "../../components/LoadFormCard/LoanCard.";
 
 const EducationLoan = () => {
   const fields = [
-    { name: "courseName", label: "Course Name", placeholder: "Enter course name" },
-    { name: "university", label: "University", placeholder: "Enter university name" },
-    { name: "courseDurationMonths", label: "Course Duration (Months)", placeholder: "Enter duration in months", type: "number" },
-    { name: "tuitionFees", label: "Tuition Fees", placeholder: "Enter tuition fees", type: "number" },
-    { name: "coApplicantName", label: "Co-Applicant Name", placeholder: "Enter co-applicant name" },
+    { name: "courseName", label: "Course Name", placeholder: "e.g. Bachelor of Technology" },
+    { name: "university", label: "University", placeholder: "e.g. Harvard University" },
+    { name: "courseDurationMonths", label: "Course Duration (Months)", placeholder: "e.g. 48", type: "number" },
+    { name: "tuitionFees", label: "Tuition Fees", placeholder: "e.g. 2000000", type: "number" },
+    { name: "coApplicantName", label: "Co-Applicant Name", placeholder: "Enter full name of co-applicant" },
   ];
 
-  const handleSubmit = (data) => {
-    console.log("Education Loan Submitted:", data);
+  const handleSubmit = () => {
+
     // TODO: Call API to save education loan details
   };
 

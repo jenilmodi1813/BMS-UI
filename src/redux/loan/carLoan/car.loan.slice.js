@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  carLoan: null,
+  loanResponse: null,
   loading: false,
   error: null,
   success: false,
@@ -17,7 +17,7 @@ const carLoanSlice = createSlice({
     },
     fetchCarLoanSuccess: (state, action) => {
       state.loading = false;
-      state.carLoan = action.payload;
+      state.loanResponse = action.payload;
     },
     fetchCarLoanFailure: (state, action) => {
       state.loading = false;
@@ -32,7 +32,7 @@ const carLoanSlice = createSlice({
     submitCarLoanSuccess: (state, action) => {
       state.loading = false;
       state.success = true;
-      state.carLoan = action.payload;
+      state.loanResponse = action.payload;
     },
     submitCarLoanFailure: (state, action) => {
       state.loading = false;

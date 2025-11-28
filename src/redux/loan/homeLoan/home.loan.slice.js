@@ -19,6 +19,7 @@ const loanSlice = createSlice({
     },
     applyLoanSuccess: (state, action) => {
       state.loading = false;
+      state.error = null;
       state.loanResponse = action.payload;
     },
     applyLoanFailure: (state, action) => {
@@ -39,7 +40,10 @@ const loanSlice = createSlice({
       state.error = action.payload;
     },
 
-    fetchLoanHistoryRequest: (state) => { state.loading = true; },
+    fetchLoanHistoryRequest: (state) => {
+      state.loading = true;
+      state.error = null;
+    },
     fetchLoanHistorySuccess: (state, action) => {
       state.loading = false;
       state.loanHistory = action.payload;

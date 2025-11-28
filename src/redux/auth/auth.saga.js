@@ -17,7 +17,7 @@ function* handleLogin(action) {
 
     // Call API
     const data = yield call(loginUserApi, { loginId, password });
-    console.log("Login API Response:", data);
+
 
     const { customer, tokens, message } = data;
 
@@ -61,7 +61,7 @@ function* handleRegister(action) {
       error?.response?.data?.message ||
       error.message ||
       "Registration failed.";
-    yield put(registerFailure(message)); 
+    yield put(registerFailure(message));
     toast.error(message);
   }
 }

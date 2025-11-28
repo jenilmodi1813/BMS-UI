@@ -621,9 +621,8 @@ const AccountForm = ({ onSuccess }) => {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full md:w-1/2 py-3 font-semibold rounded-lg text-white transition ${
-              loading ? "bg-blue-400" : "bg-blue-600 hover:bg-blue-700"
-            }`}
+            className={`w-full md:w-1/2 py-3 font-semibold rounded-lg text-white transition ${loading ? "bg-blue-400" : "bg-blue-600 hover:bg-blue-700"
+              }`}
           >
             {loading ? "Submitting..." : "Open Account"}
           </button>

@@ -1,22 +1,25 @@
-import React, { useState, useEffect } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import { FaUserCircle } from "react-icons/fa";
+
+import React, { useState, useEffect, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { FaUserCircle, FaChevronDown, FaBars, FaTimes } from "react-icons/fa";
 import { useSelector, useDispatch } from "react-redux";
 import { logout as reduxLogout } from "../../redux/auth/auth.slice";
 
+import logo from "../../assets/bank_logo.png";
+
 const Navbar = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const dispatch = useDispatch();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
 
   // Dropdown states
   const [isLoanDropdownOpen, setIsLoanDropdownOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Timeout refs to manage hover delays
-  const loanTimeoutRef = React.useRef(null);
-  const userTimeoutRef = React.useRef(null);
+  // Timeout refs
+  const loanTimeoutRef = useRef(null);
+  const userTimeoutRef = useRef(null);
 
   const handleLogout = () => {
     dispatch(reduxLogout());
@@ -24,201 +27,232 @@ const Navbar = () => {
     navigate("/login");
   };
 
-  const isLoanPage = location.pathname.startsWith("/loan");
-  const isLoanLanding = location.pathname === "/loan";
+  const isAdmin = user?.role === "ADMIN" || user?.email?.includes("admin");
 
   const backToHomeLink = isAuthenticated
-    ? isLoanLanding
-      ? "/dashboard"
+    ? isAdmin
+      ? "/admin/dashboard"
       : "/dashboard"
-    : isLoanLanding
-    ? "/"
     : "/";
 
-  // Cleanup timeouts on unmount
+  // Cleanup timeouts
   useEffect(() => {
+    const loanTimeout = loanTimeoutRef.current;
+    const userTimeout = userTimeoutRef.current;
+
     return () => {
-      if (loanTimeoutRef.current) clearTimeout(loanTimeoutRef.current);
-      if (userTimeoutRef.current) clearTimeout(userTimeoutRef.current);
+      if (loanTimeout) clearTimeout(loanTimeout);
+      if (userTimeout) clearTimeout(userTimeout);
     };
   }, []);
 
-  // Loan dropdown handlers
-  const handleLoanMouseEnter = () => {
-    if (loanTimeoutRef.current) {
-      clearTimeout(loanTimeoutRef.current);
-      loanTimeoutRef.current = null;
+  // Dropdown handlers
+  const handleDropdownEnter = (setter, ref) => {
+    if (ref.current) {
+      clearTimeout(ref.current);
+      ref.current = null;
     }
-    setIsLoanDropdownOpen(true);
+    setter(true);
   };
 
-  const handleLoanMouseLeave = () => {
-    loanTimeoutRef.current = setTimeout(() => {
-      setIsLoanDropdownOpen(false);
+  const handleDropdownLeave = (setter, ref) => {
+    ref.current = setTimeout(() => {
+      setter(false);
     }, 200);
   };
 
-  // User dropdown handlers
-  const handleUserMouseEnter = () => {
-    if (userTimeoutRef.current) {
-      clearTimeout(userTimeoutRef.current);
-      userTimeoutRef.current = null;
-    }
-    setIsUserDropdownOpen(true);
-  };
+  const NavLink = ({ to, children }) => (
+    <Link
+      to={to}
+      className="text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200 px-3 py-2 rounded-md hover:bg-blue-50"
+    >
+      {children}
+    </Link>
+  );
 
-  const handleUserMouseLeave = () => {
-    userTimeoutRef.current = setTimeout(() => {
-      setIsUserDropdownOpen(false);
-    }, 200);
-  };
+  const MobileNavLink = ({ to, children, onClick }) => (
+    <Link
+      to={to}
+      onClick={onClick}
+      className="block text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200 px-4 py-3 hover:bg-blue-50 rounded-md"
+    >
+      {children}
+    </Link>
+  );
 
   return (
-    <nav
-      className={`w-full ${
-        isLoanPage ? "bg-blue-50 border-b border-blue-100" : "bg-gray-100"
-      } md:px-[100px] px-5 flex justify-between py-4 items-center shadow-sm relative`}
-    >
-      {/* ------------ Logo Section ------------ */}
-      <Link
-        to={backToHomeLink}
-        className="flex items-center gap-2 cursor-pointer"
-      >
-        <h3 className="text-blue-500 font-bold text-3xl">BankMate</h3>
-        <img
-          src="https://cdn-icons-png.flaticon.com/512/3077/3077193.png"
-          alt="Bank Logo"
-          className="w-7 h-7"
-        />
-      </Link>
-
-      {/* ------------ Authenticated Navbar ------------ */}
-      {isAuthenticated && user ? (
-        <div className="flex items-center gap-6 text-gray-700 text-lg">
-          <Link to="/dashboard" className="hover:text-blue-700 transition">
-            Dashboard
+    <nav className="w-full bg-white/90 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50 transition-all duration-300">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-20">
+          {/* Logo */}
+          <Link to={backToHomeLink} className="flex items-center gap-2 group">
+            <img
+              src={logo}
+              alt="Bank Logo"
+              className="w-8 h-8 rounded-full"
+            />
+            <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-blue-800">
+              BankMate
+            </span>
           </Link>
 
-          <Link to="/accounts" className="hover:text-blue-700 transition">
-            Accounts
-          </Link>
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-6">
+            {isAuthenticated && user ? (
+              <>
+                {isAdmin ? (
+                  <>
+                    <NavLink to="/admin/dashboard">Dashboard</NavLink>
+                    <NavLink to="/admin/manage-users">Manage Users</NavLink>
+                  </>
+                ) : (
+                  <>
+                    <NavLink to="/dashboard">Dashboard</NavLink>
+                    <NavLink to="/accounts">Accounts</NavLink>
 
-          {/* -------- Loans Dropdown -------- */}
-          <div
-            className="relative"
-            onMouseEnter={handleLoanMouseEnter}
-            onMouseLeave={handleLoanMouseLeave}
-          >
-            <button className="flex items-center gap-1 hover:text-blue-700 transition">
-              Loans ▾
-            </button>
+                    {/* Loans Dropdown */}
+                    <div
+                      className="relative"
+                      onMouseEnter={() => handleDropdownEnter(setIsLoanDropdownOpen, loanTimeoutRef)}
+                      onMouseLeave={() => handleDropdownLeave(setIsLoanDropdownOpen, loanTimeoutRef)}
+                    >
+                      <button className="flex items-center gap-1 text-gray-600 hover:text-blue-600 font-medium px-3 py-2 rounded-md hover:bg-blue-50 transition-colors">
+                        Loans <FaChevronDown size={12} />
+                      </button>
 
-            {isLoanDropdownOpen && (
-              <div
-                className="absolute bg-white border border-gray-200 rounded-lg shadow-md mt-2 w-52 z-50"
-                onMouseEnter={handleLoanMouseEnter}
-                onMouseLeave={handleLoanMouseLeave}
-              >
-                <Link
-                  to="/loan/apply/home"
-                  className="block px-4 py-2 hover:bg-blue-50 hover:text-blue-600 transition"
-                >
-                  Home Loan
-                </Link>
-                <Link
-                  to="/loan/apply/car"
-                  className="block px-4 py-2 hover:bg-blue-50 hover:text-blue-600 transition"
-                >
-                  Car Loan
-                </Link>
-                <Link
-                  to="/loan/personal"
-                  className="block px-4 py-2 hover:bg-blue-50 hover:text-blue-600 transition"
-                >
-                  Personal Loan
-                </Link>
-                <Link
-                  to="/loan/education"
-                  className="block px-4 py-2 hover:bg-blue-50 hover:text-blue-600 transition"
-                >
-                  Education Loan
-                </Link>
-                <Link
-                  to="/loan/status"
-                  className="block px-4 py-2 hover:bg-blue-50 hover:text-blue-600 transition"
-                >
-                  Loan Status
-                </Link>
-                <Link
-                  to="/loan-history"
-                  className="block px-4 py-2 hover:bg-blue-50 hover:text-blue-600 transition"
-                >
-                  Loan History
-                </Link>
-              </div>
-            )}
-          </div>
+                      {isLoanDropdownOpen && (
+                        <div className="absolute top-full left-0 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 mt-1 transform origin-top-left transition-all duration-200">
+                          <Link to="/loan/apply/home" className="block px-4 py-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-600">Home Loan</Link>
+                          <Link to="/loan/apply/car" className="block px-4 py-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-600">Car Loan</Link>
+                          <Link to="/loan/apply" className="block px-4 py-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-600">Personal Loan</Link>
+                          <Link to="/loan/apply/education" className="block px-4 py-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-600">Education Loan</Link>
+                          <div className="h-px bg-gray-100 my-1"></div>
+                          <Link to="/loan/status" className="block px-4 py-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-600">Loan Status</Link>
+                          <Link to="/loan-history" className="block px-4 py-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-600">Loan History</Link>
+                        </div>
+                      )}
+                    </div>
 
-          <Link to="/transfer" className="hover:text-blue-700 transition">
-            Transfer
-          </Link>
-          <Link to="/payments" className="hover:text-blue-700 transition">
-            Payments
-          </Link>
+                    <NavLink to="/transfer">Transfer</NavLink>
+                  </>
+                )}
 
-          {/* -------- User Dropdown -------- */}
-          <div
-            className="relative"
-            onMouseEnter={handleUserMouseEnter}
-            onMouseLeave={handleUserMouseLeave}
-          >
-            <FaUserCircle className="text-3xl text-gray-700 cursor-pointer hover:text-blue-700 transition" />
-            {isUserDropdownOpen && (
-              <div
-                className="absolute right-0 mt-2 w-44 bg-white shadow-md rounded-md border border-gray-100 z-50"
-                onMouseEnter={handleUserMouseEnter}
-                onMouseLeave={handleUserMouseLeave}
-              >
-                <div className="px-4 py-2 text-sm text-gray-700 border-b">
-                  {user.firstName || "User"}
+                {/* User Profile Dropdown */}
+                <div
+                  className="relative ml-4"
+                  onMouseEnter={() => handleDropdownEnter(setIsUserDropdownOpen, userTimeoutRef)}
+                  onMouseLeave={() => handleDropdownLeave(setIsUserDropdownOpen, userTimeoutRef)}
+                >
+                  <button className="flex items-center gap-3 text-gray-700 hover:text-blue-600 transition-colors">
+                    <div className="text-right hidden lg:block">
+                      <p className="text-sm font-semibold">{user.firstName}</p>
+                      <p className="text-xs text-gray-500 capitalize">{user.role?.toLowerCase()}</p>
+                    </div>
+                    <FaUserCircle className="text-4xl text-gray-400 hover:text-blue-500 transition-colors" />
+                  </button>
+
+                  {isUserDropdownOpen && (
+                    <div className="absolute right-0 top-full w-64 bg-white rounded-xl shadow-xl border border-gray-100 py-2 mt-2 transform origin-top-right transition-all duration-200">
+                      <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/50">
+                        <p className="text-sm font-semibold text-gray-900">{user.firstName} {user.lastName}</p>
+                        <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                      </div>
+
+                      {!isAdmin && (
+                        <Link to="/profile" className="block px-4 py-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                          Profile Settings
+                        </Link>
+                      )}
+
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-left px-4 py-2.5 text-red-600 hover:bg-red-50 hover:text-red-700 font-medium transition-colors"
+                      >
+                        Sign Out
+                      </button>
+                    </div>
+                  )}
                 </div>
-                <Link
-                  to="/profile"
-                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                >
-                  Profile
+              </>
+            ) : (
+              <div className="flex items-center gap-4">
+                <Link to="/login" className="text-gray-600 hover:text-blue-600 font-medium transition-colors">
+                  Login
                 </Link>
-                <button
-                  onClick={handleLogout}
-                  className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                <Link
+                  to="/signUp"
+                  className="bg-blue-600 text-white px-6 py-2.5 rounded-full font-medium shadow-lg shadow-blue-500/30 hover:bg-blue-700 hover:shadow-blue-600/40 transition-all duration-300 transform hover:-translate-y-0.5"
                 >
-                  Logout
-                </button>
+                  Open Account
+                </Link>
               </div>
             )}
           </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            className="md:hidden text-gray-600 hover:text-blue-600 p-2"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+          </button>
         </div>
-      ) : (
-        // ------------ Guest Navbar ------------
-        <div className="flex items-center gap-3 md:gap-6">
-          <Link
-            to="/signUp"
-            className="px-4 py-2 text-black rounded-3xl text-lg hover:bg-gray-200 transition"
-          >
-            Open Account
-          </Link>
-          <Link
-            to="/loan"
-            className="px-4 py-2 text-black rounded-3xl text-lg hover:bg-gray-200 transition"
-          >
-            Apply Loan
-          </Link>
-          <Link
-            to="/login"
-            className="px-4 py-2 border border-blue-700 text-blue-700 rounded-3xl text-lg hover:bg-blue-50 transition"
-          >
-            Login
-          </Link>
+      </div>
+
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden bg-white border-t border-gray-100 absolute w-full shadow-xl">
+          <div className="px-4 pt-2 pb-6 space-y-1">
+            {isAuthenticated && user ? (
+              <>
+                <div className="px-4 py-3 mb-2 bg-gray-50 rounded-lg">
+                  <p className="font-semibold text-gray-900">{user.firstName} {user.lastName}</p>
+                  <p className="text-xs text-gray-500">{user.email}</p>
+                </div>
+
+                {isAdmin ? (
+                  <>
+                    <MobileNavLink to="/admin/dashboard" onClick={() => setIsMobileMenuOpen(false)}>Dashboard</MobileNavLink>
+                    <MobileNavLink to="/admin/manage-users" onClick={() => setIsMobileMenuOpen(false)}>Manage Users</MobileNavLink>
+                  </>
+                ) : (
+                  <>
+                    <MobileNavLink to="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>Dashboard</MobileNavLink>
+                    <MobileNavLink to="/accounts" onClick={() => setIsMobileMenuOpen(false)}>Accounts</MobileNavLink>
+                    <MobileNavLink to="/transfer" onClick={() => setIsMobileMenuOpen(false)}>Transfer</MobileNavLink>
+                    <MobileNavLink to="/loan" onClick={() => setIsMobileMenuOpen(false)}>Loans</MobileNavLink>
+                    <MobileNavLink to="/profile" onClick={() => setIsMobileMenuOpen(false)}>Profile</MobileNavLink>
+                  </>
+                )}
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full text-left px-4 py-3 text-red-600 font-medium hover:bg-red-50 rounded-md"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <div className="flex flex-col gap-3 mt-4">
+                <Link
+                  to="/login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="w-full text-center py-3 text-gray-600 font-medium border border-gray-200 rounded-lg hover:bg-gray-50"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/signUp"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="w-full text-center py-3 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-700"
+                >
+                  Open Account
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </nav>
