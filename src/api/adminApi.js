@@ -11,6 +11,14 @@ const getAuthHeader = () => {
     };
 };
 
+export const getAllCustomers = async () => {
+    const response = await axios.get(
+        `${BASE_URL}/customers`,
+        getAuthHeader()
+    );
+    return response.data;
+};
+
 // Loan Management
 export const getAllLoansByCif = async (cifNumber) => {
     const response = await axios.get(
