@@ -1,10 +1,11 @@
 import React from "react";
-import { Link } from "react-router-dom";
-import { ArrowLeft, Search, Filter, MoreVertical } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, Search, Filter, MoreVertical, Eye } from "lucide-react";
 
 import { getAllCustomers } from "../../api/adminApi";
 
 const ManageUsers = () => {
+    const navigate = useNavigate();
     const [users, setUsers] = React.useState([]);
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState(null);
@@ -97,7 +98,11 @@ const ManageUsers = () => {
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                             {paginatedUsers.map((user) => (
-                                <tr key={user.customerId} className="hover:bg-gray-50 transition">
+                                <tr
+                                    key={user.customerId}
+                                    className="hover:bg-gray-50 transition cursor-pointer"
+                                    onClick={() => navigate(`/admin/users/${user.customerId}`)}
+                                >
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
@@ -112,8 +117,8 @@ const ManageUsers = () => {
                                     <td className="px-6 py-4">
                                         {user.role !== 'ADMIN' && (
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
-                                                    user.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                                                        'bg-gray-100 text-gray-800'
+                                                user.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                                                    'bg-gray-100 text-gray-800'
                                                 }`}>
                                                 {user.status}
                                             </span>
@@ -124,9 +129,24 @@ const ManageUsers = () => {
                                         {new Date(user.createdAt).toLocaleDateString()}
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <button className="p-2 hover:bg-gray-100 rounded-full transition text-gray-500">
-                                            <MoreVertical className="w-5 h-5" />
-                                        </button>
+                                        <div className="flex justify-end gap-2">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    navigate(`/admin/users/${user.customerId}`);
+                                                }}
+                                                className="p-2 hover:bg-gray-100 rounded-full transition text-blue-600"
+                                                title="View Details"
+                                            >
+                                                <Eye className="w-5 h-5" />
+                                            </button>
+                                            <button
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="p-2 hover:bg-gray-100 rounded-full transition text-gray-500"
+                                            >
+                                                <MoreVertical className="w-5 h-5" />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

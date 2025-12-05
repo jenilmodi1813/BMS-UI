@@ -3,6 +3,7 @@ import {
   applyHomeLoan,
   getHomeLoansByCif,
   getHomeLoanHistoryById,
+  homeLoanService,
 } from "./home.loan.service";
 
 import {
@@ -19,8 +20,9 @@ import {
 
 function* handleApplyLoan(action) {
   try {
-    const data = yield call(applyHomeLoan, action.payload);
-    yield put(applyLoanSuccess(data));
+    console.log("Saga: submitHomeLoanSaga triggered");
+    const response = yield call(homeLoanService.applyHomeLoan, action.payload);
+    yield put(applyLoanSuccess(response));
   } catch (error) {
     yield put(applyLoanFailure(error.message));
   }

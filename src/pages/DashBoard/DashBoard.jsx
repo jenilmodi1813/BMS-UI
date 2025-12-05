@@ -121,9 +121,18 @@ const DashBoard = () => {
     });
 
     try {
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth() + 1; // 1-12
+
       const txRes = await axios.get(
-        `${API_BASE}/accounts/${account.id}/transactions`,
+        `${API_BASE}/transactions/month`,
         {
+          params: {
+            accountNumber: account.accountNumber,
+            year: currentYear,
+            month: currentMonth
+          },
           headers: tokenHeader
             ? { Authorization: `Bearer ${tokenHeader}` }
             : token
@@ -318,36 +327,47 @@ const DashBoard = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {transactions.slice(0, 5).map((txn, index) => (
-                    <tr key={index} className="hover:bg-gray-50 transition">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {txn.date}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {txn.description}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <span
-                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${txn.type?.toLowerCase() === "debit"
-                            ? "bg-red-100 text-red-800"
-                            : "bg-green-100 text-green-800"
+                  {transactions.slice(0, 5).map((txn, index) => {
+                    const creditTypes = [
+                      "DEPOSIT",
+                      "LOAN_DISBURSEMENT",
+                      "REFUND",
+                      "CASH_DEPOSIT",
+                      "REVERSAL"
+                    ];
+                    const isDebit = !creditTypes.includes(txn.transactionType?.toUpperCase());
+
+                    return (
+                      <tr key={index} className="hover:bg-gray-50 transition">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {txn.transactionDate}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {txn.description}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${isDebit
+                              ? "bg-red-100 text-red-800"
+                              : "bg-green-100 text-green-800"
+                              }`}
+                          >
+                            {txn.transactionType}
+                          </span>
+                        </td>
+                        <td
+                          className={`px-6 py-4 whitespace-nowrap text-sm text-right font-bold ${isDebit
+                            ? "text-red-600"
+                            : "text-green-600"
                             }`}
                         >
-                          {txn.type}
-                        </span>
-                      </td>
-                      <td
-                        className={`px-6 py-4 whitespace-nowrap text-sm text-right font-bold ${txn.type?.toLowerCase() === "debit"
-                          ? "text-red-600"
-                          : "text-green-600"
-                          }`}
-                      >
-                        {txn.type?.toLowerCase() === "debit"
-                          ? `- ₹${txn.amount}`
-                          : `+ ₹${txn.amount}`}
-                      </td>
-                    </tr>
-                  ))}
+                          {isDebit
+                            ? `- ₹${txn.amount}`
+                            : `+ ₹${txn.amount}`}
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>

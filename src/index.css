@@ -1,7 +1,12 @@
+/* 1️⃣ Load AG Grid first */
+@import "ag-grid-community/styles/ag-grid.css";
+@import "ag-grid-community/styles/ag-theme-quartz.css";
+
+/* 2️⃣ THEN load Tailwind */
 @import "tailwindcss";
 
-body{
+/* 3️⃣ Your own global CSS */
+body {
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
 }
