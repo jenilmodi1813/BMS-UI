@@ -1,0 +1,71 @@
+/* Restore AG Grid box sizing (Tailwind overrides this) */
+.ag-theme-quartz *,
+.ag-theme-quartz *::before,
+.ag-theme-quartz *::after {
+    box-sizing: content-box !important;
+}
+
+/* Restore AG Grid default box sizing (Tailwind v4 breaks this) */
+.ag-theme-quartz *,
+.ag-theme-quartz *::before,
+.ag-theme-quartz *::after {
+    box-sizing: content-box !important;
+}
+
+/* Restore AG Grid reset ONLY for these critical components */
+.ag-theme-quartz .ag-root-wrapper,
+.ag-theme-quartz .ag-root,
+.ag-theme-quartz .ag-header,
+.ag-theme-quartz .ag-body,
+.ag-theme-quartz .ag-cell,
+.ag-theme-quartz .ag-header-cell {
+    all: revert-layer !important;
+}
+
+/* Custom variables */
+.ag-theme-quartz {
+    --ag-header-height: 48px;
+    --ag-row-height: 52px;
+    --ag-font-family: 'Inter', sans-serif;
+    --ag-font-size: 14px;
+    --ag-header-background-color: #f9fafb;
+    --ag-header-foreground-color: #6b7280;
+    --ag-row-hover-color: #f3f4f6;
+    --ag-selected-row-background-color: #eff6ff;
+    --ag-row-border-color: #e5e7eb;
+    --ag-borders: solid 1px;
+    --ag-border-color: #e5e7eb;
+    --ag-cell-horizontal-padding: 24px;
+}
+
+.ag-theme-quartz .ag-header-cell-label {
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 12px;
+}
+
+.ag-theme-quartz .ag-cell {
+    display: flex;
+    align-items: center;
+}
+
+.ag-theme-quartz .ag-paging-panel {
+    border-top: 1px solid #e5e7eb;
+    font-size: 13px;
+    color: #374151;
+}
+
+.ag-theme-quartz .ag-paging-button {
+    opacity: 0.7;
+}
+
+.ag-theme-quartz .ag-paging-button:hover {
+    opacity: 1;
+}
+
+/* Rounded corners */
+.ag-root-wrapper {
+    border-radius: 0 0 0.75rem 0.75rem;
+    border: none !important;
+}

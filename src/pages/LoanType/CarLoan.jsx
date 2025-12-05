@@ -326,15 +326,27 @@ const CarLoan = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    console.log("Submit clicked");
+    if (!validateForm()) {
+      console.log("Validation failed", formErrors);
+      return;
+    }
+    console.log("Validation passed");
     const payload = buildPayload();
+    console.log("Payload built:", payload);
 
     dispatch(submitCarLoanRequest(payload));
+    console.log("Dispatched submitCarLoanRequest");
   };
 
   useEffect(() => {
     if (!loading && loanResponse && !error) {
-      const loanId = loanResponse.loanId;
+      console.log("Loan Response:", JSON.stringify(loanResponse, null, 2)); // Debug log
+      const loanId =
+        loanResponse.loanApplicationId ||
+        loanResponse.loanId ||
+        loanResponse.id;
+
       if (loanId) {
         localStorage.setItem("loanApplicationId", loanId);
       }

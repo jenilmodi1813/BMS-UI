@@ -8,11 +8,21 @@ export default defineConfig({
     tailwindcss(),
   ],
   server: {
-    port: 5173,          
-    strictPort: true,   
+    port: 5173,
+    strictPort: true,
     proxy: {
+      '/api/v1/loan-documents': {
+        target: 'http://localhost:8086',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/api/v1/loans/home/verify': {
+        target: 'http://localhost:8086',
+        changeOrigin: true,
+        secure: false,
+      },
       '/api': {
-        target: 'http://localhost:8080', 
+        target: 'http://localhost:8080',
         changeOrigin: true,
         secure: false,
       },

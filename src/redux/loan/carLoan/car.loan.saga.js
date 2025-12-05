@@ -7,7 +7,7 @@ import {
   submitCarLoanSuccess,
   submitCarLoanFailure,
 } from "./car.loan.slice";
-import {carLoanService} from "./car.loan.service";
+import { carLoanService } from "./car.loan.service";
 
 function* fetchCarLoanSaga(action) {
   try {
@@ -20,6 +20,7 @@ function* fetchCarLoanSaga(action) {
 
 function* submitCarLoanSaga(action) {
   try {
+    console.log("Saga: submitCarLoanSaga triggered");
     const response = yield call(carLoanService.applyCarLoan, action.payload);
     yield put(submitCarLoanSuccess(response));
   } catch (error) {

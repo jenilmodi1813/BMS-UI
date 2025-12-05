@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 
-import { FaArrowLeft } from "react-icons/fa";
+import { FaArrowLeft, FaArrowUp, FaArrowDown } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
 const AllTransactions = () => {
@@ -26,8 +26,8 @@ const AllTransactions = () => {
                 if (!userId) return;
 
                 // Fetch accounts first to get account IDs
-                const accRes = await axios.get(`${API_BASE} /accounts/${userId} `, {
-                    headers: { Authorization: `Bearer ${token} ` },
+                const accRes = await axios.get(`${API_BASE}/accounts/${userId}`, {
+                    headers: { Authorization: `Bearer ${token}` },
                 });
 
                 const accounts = Array.isArray(accRes.data)
@@ -39,12 +39,20 @@ const AllTransactions = () => {
                     return;
                 }
 
-                // Fetch transactions for the first account (simplified for now)
-                // In a real app, we might fetch for all or let user select account
-                const accountId = accounts[0].id;
+                // Fetch transactions for the first account using the same API as Dashboard
+                const account = accounts[0];
+                const now = new Date();
+                const currentYear = now.getFullYear();
+                const currentMonth = now.getMonth() + 1;
+
                 const txRes = await axios.get(
-                    `${API_BASE} /accounts/${accountId}/transactions`,
+                    `${API_BASE}/transactions/month`,
                     {
+                        params: {
+                            accountNumber: account.accountNumber,
+                            year: currentYear,
+                            month: currentMonth
+                        },
                         headers: { Authorization: `Bearer ${token}` },
                     }
                 );
@@ -60,10 +68,37 @@ const AllTransactions = () => {
         fetchTransactions();
     }, []);
 
+    const getTransactionCategory = (type) => {
+        const creditTypes = [
+            "DEPOSIT",
+            "LOAN_DISBURSEMENT",
+            "REFUND",
+            "CASH_DEPOSIT",
+            "REVERSAL"
+        ];
+        return creditTypes.includes(type?.toUpperCase()) ? "CREDIT" : "DEBIT";
+    };
+
     const filteredTransactions = transactions.filter((txn) => {
         if (filter === "ALL") return true;
-        return txn.type?.toUpperCase() === filter;
+        return getTransactionCategory(txn.transactionType) === filter;
     });
+
+    const { totalIncome, totalExpense } = useMemo(() => {
+        return transactions.reduce(
+            (acc, txn) => {
+                const category = getTransactionCategory(txn.transactionType);
+                const amount = parseFloat(txn.amount) || 0;
+                if (category === "CREDIT") {
+                    acc.totalIncome += amount;
+                } else {
+                    acc.totalExpense += amount;
+                }
+                return acc;
+            },
+            { totalIncome: 0, totalExpense: 0 }
+        );
+    }, [transactions]);
 
     return (
         <div className="min-h-screen bg-gray-50 p-8">
@@ -96,6 +131,32 @@ const AllTransactions = () => {
                     </div>
                 </div>
 
+                {/* Summary Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-medium text-gray-500">Total Income</p>
+                            <p className="text-2xl font-bold text-green-600 mt-1">
+                                + ₹{totalIncome.toFixed(2)}
+                            </p>
+                        </div>
+                        <div className="bg-green-100 p-3 rounded-full text-green-600">
+                            <FaArrowUp size={20} />
+                        </div>
+                    </div>
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-medium text-gray-500">Total Expense</p>
+                            <p className="text-2xl font-bold text-red-600 mt-1">
+                                - ₹{totalExpense.toFixed(2)}
+                            </p>
+                        </div>
+                        <div className="bg-red-100 p-3 rounded-full text-red-600">
+                            <FaArrowDown size={20} />
+                        </div>
+                    </div>
+                </div>
+
                 <div className="bg-white shadow-lg rounded-2xl overflow-hidden border border-gray-100">
                     {loading ? (
                         <div className="p-8 text-center text-gray-500">Loading...</div>
@@ -111,10 +172,16 @@ const AllTransactions = () => {
                                         Date
                                     </th>
                                     <th className="py-4 px-6 text-sm font-semibold text-gray-600">
+                                        Transaction ID
+                                    </th>
+                                    <th className="py-4 px-6 text-sm font-semibold text-gray-600">
                                         Description
                                     </th>
                                     <th className="py-4 px-6 text-sm font-semibold text-gray-600">
                                         Type
+                                    </th>
+                                    <th className="py-4 px-6 text-sm font-semibold text-gray-600">
+                                        Status
                                     </th>
                                     <th className="py-4 px-6 text-sm font-semibold text-gray-600 text-right">
                                         Amount
@@ -122,36 +189,49 @@ const AllTransactions = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
-                                {filteredTransactions.map((txn, index) => (
-                                    <tr key={index} className="hover:bg-gray-50 transition">
-                                        <td className="py-4 px-6 text-sm text-gray-700">
-                                            {txn.date}
-                                        </td>
-                                        <td className="py-4 px-6 text-sm text-gray-700">
-                                            {txn.description}
-                                        </td>
-                                        <td className="py-4 px-6 text-sm">
-                                            <span
-                                                className={`px-2 py-1 rounded-full text-xs font-medium ${txn.type?.toLowerCase() === "debit"
-                                                    ? "bg-red-100 text-red-700"
-                                                    : "bg-green-100 text-green-700"
+                                {filteredTransactions.map((txn, index) => {
+                                    const category = getTransactionCategory(txn.transactionType);
+                                    const isDebit = category === "DEBIT";
+
+                                    return (
+                                        <tr key={index} className="hover:bg-gray-50 transition">
+                                            <td className="py-4 px-6 text-sm text-gray-700">
+                                                {txn.transactionDate}
+                                            </td>
+                                            <td className="py-4 px-6 text-sm text-gray-500 font-mono">
+                                                {txn.transactionId}
+                                            </td>
+                                            <td className="py-4 px-6 text-sm text-gray-700">
+                                                {txn.description}
+                                            </td>
+                                            <td className="py-4 px-6 text-sm">
+                                                <span
+                                                    className={`px-2 py-1 rounded-full text-xs font-medium ${isDebit
+                                                        ? "bg-red-100 text-red-700"
+                                                        : "bg-green-100 text-green-700"
+                                                        }`}
+                                                >
+                                                    {txn.transactionType}
+                                                </span>
+                                            </td>
+                                            <td className="py-4 px-6 text-sm">
+                                                <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                                                    {txn.status}
+                                                </span>
+                                            </td>
+                                            <td
+                                                className={`py-4 px-6 text-sm font-semibold text-right ${isDebit
+                                                    ? "text-red-600"
+                                                    : "text-green-600"
                                                     }`}
                                             >
-                                                {txn.type}
-                                            </span>
-                                        </td>
-                                        <td
-                                            className={`py-4 px-6 text-sm font-semibold text-right ${txn.type?.toLowerCase() === "debit"
-                                                ? "text-red-600"
-                                                : "text-green-600"
-                                                }`}
-                                        >
-                                            {txn.type?.toLowerCase() === "debit"
-                                                ? `- ₹${txn.amount}`
-                                                : `+ ₹${txn.amount}`}
-                                        </td>
-                                    </tr>
-                                ))}
+                                                {isDebit
+                                                    ? `- ₹${txn.amount}`
+                                                    : `+ ₹${txn.amount}`}
+                                            </td>
+                                        </tr>
+                                    )
+                                })}
                             </tbody>
                         </table>
                     )}

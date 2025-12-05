@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { getAllLoansByCif } from "../../api/adminApi";
+import AllLoansList from "./components/AllLoansList";
 import { FaSearch, FaFileInvoiceDollar, FaBuilding, FaUser, FaArrowLeft } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -97,6 +98,9 @@ const LoanManagement = () => {
                         </button>
                     </form>
                 </div>
+
+                {/* All Loans List */}
+                <AllLoansList />
 
                 {/* Results Section */}
                 {loans.length > 0 && (

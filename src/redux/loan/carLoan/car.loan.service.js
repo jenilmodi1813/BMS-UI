@@ -1,7 +1,6 @@
-import axios from "axios";
-import { BASE_URL } from "../../../config/api.config";
+import axiosInstance from "../../../api/axiosInstance";
 
-const API_BASE = `${BASE_URL}/loans`;
+
 
 const sanitize = (obj) => {
   if (obj === null || obj === undefined) return obj;
@@ -40,6 +39,9 @@ const sanitize = (obj) => {
  * ✅ Apply for Car Loan
  */
 export const applyCarLoan = async (loanData) => {
+  console.log("Service: applyCarLoan called", loanData);
+
+
   try {
     const storedAuth = localStorage.getItem("auth");
     const user = storedAuth ? JSON.parse(storedAuth) : null;
@@ -54,7 +56,8 @@ export const applyCarLoan = async (loanData) => {
 
 
 
-    const response = await axios.post(`${API_BASE}/apply`, sanitizedPayload, {
+    const response = await axiosInstance.post(`/loans/apply`, sanitizedPayload, {
+      baseURL: "/api/v1", // Override baseURL to use Vite proxy
       headers: { "Content-Type": "application/json" },
     });
 
@@ -63,25 +66,15 @@ export const applyCarLoan = async (loanData) => {
   } catch (error) {
     console.error("Car Loan Apply API Error:", error);
     console.error("Error response:", error.response?.data);
-
-    if (error.response?.status === 200 ||
-      (error.response?.data?.message?.includes("extracting response") &&
-        error.response?.status === 500)) {
-      console.warn("Loan might have been created despite serialization error");
-      return {
-        success: true,
-        message: "Loan application submitted successfully",
-        loanId: null // Backend should fix this
-      };
-    }
-
     throw error.response?.data || { message: "Something went wrong while applying for car loan" };
   }
 };
 
 export const getCarLoansByCif = async (cifNumber) => {
   try {
-    const response = await axios.get(`${API_BASE}/${cifNumber}/all`);
+    const response = await axiosInstance.get(`/loans/${cifNumber}/all`, {
+      baseURL: "/api/v1"
+    });
 
     return response.data;
   } catch (error) {
@@ -92,7 +85,9 @@ export const getCarLoansByCif = async (cifNumber) => {
 
 export const getCarLoanHistoryById = async (loanId) => {
   try {
-    const response = await axios.get(`${API_BASE}/${loanId}/detail`);
+    const response = await axiosInstance.get(`/loans/${loanId}/detail`, {
+      baseURL: "/api/v1"
+    });
 
     return response.data;
   } catch (error) {

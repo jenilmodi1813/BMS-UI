@@ -1,6 +1,7 @@
 import axios from "axios";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api/v1";
+const DOC_SERVICE_URL = "/api/v1";
 
 const getAuthHeader = () => {
     const auth = JSON.parse(localStorage.getItem("auth"));
@@ -19,10 +20,34 @@ export const getAllCustomers = async () => {
     return response.data;
 };
 
+export const getCustomerById = async (customerId) => {
+    const response = await axios.get(
+        `${BASE_URL}/customers/${customerId}`,
+        getAuthHeader()
+    );
+    return response.data;
+};
+
 // Loan Management
 export const getAllLoansByCif = async (cifNumber) => {
     const response = await axios.get(
         `${BASE_URL}/loans/${cifNumber}/all`,
+        getAuthHeader()
+    );
+    return response.data;
+};
+
+export const getAllLoans = async () => {
+    const response = await axios.get(
+        `${BASE_URL}/loans/all`,
+        getAuthHeader()
+    );
+    return response.data;
+};
+
+export const getLoanById = async (loanId) => {
+    const response = await axios.get(
+        `${BASE_URL}/loans/${loanId}/detail`,
         getAuthHeader()
     );
     return response.data;
@@ -122,18 +147,62 @@ export const getAllInterestRates = async () => {
 
 
 // Document Verification
-export const verifyDocument = async (documentId) => {
-    const response = await axios.put(
-        `${BASE_URL}/loan-documents/${documentId}/verify`,
+// Customer KYC Verification
+export const approveCustomerKyc = async (kycId) => {
+    const response = await axios.patch(
+        `${BASE_URL}/kyc/${kycId}/approve`,
         {},
         getAuthHeader()
     );
     return response.data;
 };
 
+export const rejectCustomerKyc = async (kycId) => {
+    const response = await axios.patch(
+        `${BASE_URL}/kyc/${kycId}/reject`,
+        {},
+        getAuthHeader()
+    );
+    return response.data;
+};
+
+// Document Verification
+export const verifyDocument = async (documentId) => {
+    const response = await axios.put(
+        `${DOC_SERVICE_URL}/loan-documents/${documentId}/verify`,
+        {},
+        getAuthHeader()
+    );
+    return response.data;
+};
+
+export const rejectDocument = async (documentId) => {
+    const response = await axios.put(
+        `${DOC_SERVICE_URL}/loan-documents/${documentId}/reject`,
+        {},
+        getAuthHeader()
+    );
+    return response.data;
+};
+
+export const getKycDocumentDownloadUrl = (documentId) => {
+    return `${DOC_SERVICE_URL}/loan-documents/${documentId}/download`;
+};
+
+export const downloadDocument = async (documentId) => {
+    const response = await axios.get(
+        `${DOC_SERVICE_URL}/loan-documents/${documentId}/download`,
+        {
+            ...getAuthHeader(),
+            responseType: 'blob'
+        }
+    );
+    return response.data;
+};
+
 export const getDocumentsByLoanId = async (loanApplicationId) => {
     const response = await axios.get(
-        `${BASE_URL}/loan-documents/loan/${loanApplicationId}`,
+        `${DOC_SERVICE_URL}/loan-documents/loan/${loanApplicationId}/documents`,
         getAuthHeader()
     );
     return response.data;

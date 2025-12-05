@@ -39,6 +39,7 @@ import AllTransactions from "./pages/Transactions/AllTransactions";
 // Admin Pages
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import ManageUsers from "./pages/Admin/ManageUsers";
+import UserDetail from "./pages/Admin/UserDetail";
 import LoanManagement from "./pages/Admin/LoanManagement";
 import LoanEvaluation from "./pages/Admin/LoanEvaluation";
 import InterestRateManagement from "./pages/Admin/InterestRateManagement";
@@ -188,6 +189,15 @@ const AppContent = () => {
             element={
               <ProtectedAdminRoute>
                 <ManageUsers />
+              </ProtectedAdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin/users/:userId"
+            element={
+              <ProtectedAdminRoute>
+                <UserDetail />
               </ProtectedAdminRoute>
             }
           />

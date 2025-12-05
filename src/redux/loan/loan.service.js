@@ -8,6 +8,7 @@ import axiosInstance from "../../api/axiosInstance";
 export const uploadLoanDocument = async (formData) => {
     try {
         const response = await axiosInstance.post(`/loan-documents/upload`, formData, {
+            baseURL: "/api/v1", // Override baseURL to use Vite proxy for document service
             headers: {
                 "Content-Type": "multipart/form-data",
             },
