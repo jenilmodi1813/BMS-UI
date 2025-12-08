@@ -301,7 +301,7 @@ const Account = () => {
                       className="flex-1 flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-3 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg font-medium"
                     >
                       <FaKey />
-                      PIN
+                      Change PIN
                     </button>
                   </div>
                 </div>
