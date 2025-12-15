@@ -175,54 +175,87 @@ const DashBoard = () => {
 
         {/* Account Summary Card */}
         {hasAccounts && selectedAccount ? (
-          <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl shadow-xl p-6 text-white mb-8">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-              <div>
-                <p className="text-blue-100 text-sm font-medium uppercase tracking-wider">
-                  Total Balance
-                </p>
-                <h2 className="text-4xl font-bold mt-1">
-                  ₹{accountSummary.balance}
-                </h2>
-              </div>
-              {accounts.length > 1 && (
-                <div className="mt-4 md:mt-0">
-                  <select
-                    onChange={handleAccountChange}
-                    value={selectedAccount?.accountNumber || ""}
-                    className="bg-blue-700 border-none text-white text-sm rounded-lg focus:ring-2 focus:ring-white p-2.5"
-                  >
-                    {accounts.map((acc) => (
-                      <option key={acc.accountNumber} value={acc.accountNumber}>
-                        {acc.accountType} - {acc.accountNumber}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-            </div>
+          <div className="relative overflow-hidden bg-gradient-to-br from-indigo-700 to-blue-600 rounded-3xl shadow-2xl p-6 sm:p-8 text-white mb-8 group transition-all duration-300 hover:shadow-blue-900/20">
+            {/* Background Decorations for Premium Feel */}
+            <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 border-t border-blue-500 pt-6">
-              <div>
-                <p className="text-blue-200 text-xs">Account Number</p>
-                <p className="font-mono text-lg mt-1">
-                  {accountSummary.accountNumber}
-                </p>
+            <div className="relative z-10">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+                <div>
+                  <h2 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                    <FaUniversity className="opacity-80" />
+                    Account Overview
+                  </h2>
+                  <p className="text-blue-100 text-sm mt-1 font-medium opacity-80">
+                    Manage and view your account details
+                  </p>
+                </div>
+                {accounts.length > 1 && (
+                  <div className="relative w-full sm:w-auto">
+                    <select
+                      onChange={handleAccountChange}
+                      value={selectedAccount?.accountNumber || ""}
+                      className="w-full sm:w-auto appearance-none bg-white/10 backdrop-blur-md border border-white/20 text-white text-sm rounded-xl focus:ring-2 focus:ring-white/50 focus:border-transparent py-3 pl-4 pr-10 cursor-pointer hover:bg-white/20 transition-all font-medium outline-none"
+                    >
+                      {accounts.map((acc) => (
+                        <option key={acc.accountNumber} value={acc.accountNumber} className="text-gray-900">
+                          {acc.accountType} - {acc.accountNumber}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-white/80">
+                      <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                      </svg>
+                    </div>
+                  </div>
+                )}
               </div>
-              <div>
-                <p className="text-blue-200 text-xs">Status</p>
-                <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-1 ${accountSummary.accountStatus === "ACTIVE"
-                    ? "bg-green-100 text-green-800"
-                    : "bg-red-100 text-red-800"
-                    }`}
-                >
-                  {accountSummary.accountStatus}
-                </span>
-              </div>
-              <div>
-                <p className="text-blue-200 text-xs">Account Type</p>
-                <p className="text-lg mt-1">{accountSummary.accountType}</p>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Account Number */}
+                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-5 border border-white/10 flex flex-col justify-center hover:bg-white/15 transition-colors">
+                  <p className="text-blue-200 text-xs uppercase tracking-wider font-bold mb-2 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-300"></span>
+                    Account Number
+                  </p>
+                  <p className="font-mono text-2xl tracking-wider text-white drop-shadow-sm truncate" title={accountSummary.accountNumber}>
+                    {accountSummary.accountNumber}
+                  </p>
+                </div>
+
+                {/* Status */}
+                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-5 border border-white/10 flex flex-col justify-center hover:bg-white/15 transition-colors">
+                  <p className="text-blue-200 text-xs uppercase tracking-wider font-bold mb-2 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-300"></span>
+                    Status
+                  </p>
+                  <div>
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide shadow-sm border ${accountSummary.accountStatus === "ACTIVE"
+                          ? "bg-emerald-500/20 text-emerald-100 border-emerald-400/30"
+                          : "bg-rose-500/20 text-rose-100 border-rose-400/30"
+                        }`}
+                    >
+                      <span className={`w-2 h-2 rounded-full ${accountSummary.accountStatus === "ACTIVE" ? "bg-emerald-400" : "bg-rose-400"
+                        } animate-pulse`}></span>
+                      {accountSummary.accountStatus}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Account Type */}
+                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-5 border border-white/10 flex flex-col justify-center hover:bg-white/15 transition-colors">
+                  <p className="text-blue-200 text-xs uppercase tracking-wider font-bold mb-2 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-300"></span>
+                    Account Type
+                  </p>
+                  <p className="text-xl font-semibold capitalize flex items-center gap-2">
+                    <FaMoneyCheckAlt className="text-blue-300 opacity-70 text-lg" />
+                    {accountSummary.accountType}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
