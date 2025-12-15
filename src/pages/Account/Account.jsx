@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaSearch, FaPlus, FaMoneyBillWave, FaKey, FaTimes, FaWallet, FaUniversity, FaBriefcase, FaChartLine } from "react-icons/fa";
+import { FaSearch, FaPlus, FaKey, FaTimes, FaUniversity, FaWallet, FaBriefcase, FaChartLine } from "react-icons/fa";
 import toast from "react-hot-toast";
 import AccountForm from "../../components/Account/AccountForm";
 import ChangePinForm from "../../components/Account/ChangePinForm";
+import AccountDetailsModal from "../../components/Account/AccountDetailsModal";
 
 const Account = () => {
   const [accounts, setAccounts] = useState([]);
@@ -17,6 +18,9 @@ const Account = () => {
   const [enteredPin, setEnteredPin] = useState("");
   const [selectedAccountForBalance, setSelectedAccountForBalance] = useState(null);
   const [selectedAccountNumber, setSelectedAccountNumber] = useState(null);
+
+  // New state for details modal
+  const [selectedAccountDetails, setSelectedAccountDetails] = useState(null);
 
   const BASE_URL =
     import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
@@ -46,16 +50,18 @@ const Account = () => {
 
   const handleCheckBalance = (accId, accNumber) => {
     if (selectedAccountForBalance === accId) {
-      setSelectedAccountForBalance(null);
-      setEnteredPin("");
-      setSelectedAccountNumber(null);
-      localStorage.removeItem("selectedAccountNumber");
-    } else {
-      setSelectedAccountForBalance(accId);
-      setSelectedAccountNumber(accNumber);
-      localStorage.setItem("selectedAccountNumber", accNumber);
-      setEnteredPin("");
+      // Toggle off if already selected (though logic usually implies opening the modal)
+      // For the modal flow, we probably just want to open the PIN entry if balance is not visible
+      if (visibleBalances[accId]) {
+        // already visible, do nothing or toggle? Let's just keep it visible
+        return;
+      }
     }
+
+    setSelectedAccountForBalance(accId);
+    setSelectedAccountNumber(accNumber);
+    localStorage.setItem("selectedAccountNumber", accNumber);
+    setEnteredPin("");
   };
 
   const submitPin = async (accId) => {
@@ -73,8 +79,12 @@ const Account = () => {
     }
 
     try {
-      const { data } = await axios.get(
-        `${BASE_URL}/accounts/${accNumber}/pin/${enteredPin}/balance`
+      const { data } = await axios.post(
+        `${BASE_URL}/accounts/checkBalance`,
+        {
+          accountNumber: accNumber,
+          accountPin: enteredPin,
+        }
       );
 
       setVisibleBalances((prev) => ({
@@ -86,9 +96,21 @@ const Account = () => {
       setSelectedAccountForBalance(null);
       setEnteredPin("");
       localStorage.removeItem("selectedAccountNumber");
-    } catch {
-      // ignore error
-      toast.error("Invalid PIN or failed to fetch balance");
+    } catch (err) {
+      let errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Invalid PIN or failed to fetch balance";
+
+      const lockTime = err.response?.data?.lockExpiresInSeconds;
+      if (lockTime) {
+        const minutes = Math.floor(lockTime / 60);
+        const seconds = lockTime % 60;
+        const timeString = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+        errorMessage += ` Try again in ${timeString}.`;
+      }
+
+      toast.error(errorMessage);
     }
   };
 
@@ -127,182 +149,128 @@ const Account = () => {
 
   return (
     <motion.div
-      className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-6"
+      className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6 sm:p-8"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">My Accounts</h1>
-            <p className="text-gray-600">Manage your bank accounts and balances</p>
+            <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-900 to-indigo-800 tracking-tight mb-2">
+              My Accounts
+            </h1>
+            <p className="text-slate-600 text-lg font-medium">
+              Manage your wealth and banking details
+            </p>
           </div>
           <button
             onClick={() => setShowForm(!showForm)}
-            className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5"
+            className="group relative inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-2xl shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40 transform hover:-translate-y-0.5 transition-all duration-300 overflow-hidden"
           >
-            {showForm ? <FaTimes /> : <FaPlus />}
-            {showForm ? "Close Form" : "Open New Account"}
+            <div className="absolute inset-0 bg-white/20 group-hover:translate-x-full transition-transform duration-500 ease-out -skew-x-12 origin-left" />
+            {showForm ? <FaTimes className="text-lg" /> : <FaPlus className="text-lg" />}
+            <span>{showForm ? "Close Form" : "Open New Account"}</span>
           </button>
         </div>
 
-        {/* Form */}
+        {/* Form Section */}
         <AnimatePresence>
           {showForm && (
             <motion.div
-              className="bg-white rounded-2xl shadow-xl p-6 mb-8 border border-gray-100"
+              className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-1 mb-10 overflow-hidden ring-1 ring-black/5"
               initial={{ opacity: 0, y: -20, height: 0 }}
               animate={{ opacity: 1, y: 0, height: "auto" }}
               exit={{ opacity: 0, y: -20, height: 0 }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
             >
-              <AccountForm
-                onSuccess={() => {
-                  fetchAccounts();
-                  setShowForm(false);
-                }}
-              />
+              <div className="p-6 sm:p-8">
+                <AccountForm
+                  onSuccess={() => {
+                    fetchAccounts();
+                    setShowForm(false);
+                  }}
+                />
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Search */}
-        <div className="flex items-center bg-white shadow-md rounded-xl p-4 mb-8 border border-gray-100">
-          <FaSearch className="text-gray-400 mr-3 text-lg" />
+        {/* Search Bar */}
+        <div className="relative group mb-10">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <FaSearch className="text-slate-400 group-focus-within:text-blue-500 transition-colors text-lg" />
+          </div>
           <input
             type="text"
-            placeholder="Search by account number..."
+            placeholder="Search accounts by number..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 outline-none text-gray-700 placeholder-gray-400"
+            className="w-full pl-12 pr-12 py-4 bg-white/70 backdrop-blur-md border border-slate-200 rounded-2xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent focus:bg-white shadow-sm transition-all text-lg"
           />
           {search && (
             <button
               onClick={() => setSearch("")}
-              className="ml-2 text-gray-400 hover:text-gray-600 transition-colors"
+              className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
             >
-              <FaTimes />
+              <FaTimes className="text-lg" />
             </button>
           )}
         </div>
 
         {/* Accounts Grid */}
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white rounded-2xl p-6 shadow-lg animate-pulse">
-                <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-2/3 mb-4"></div>
-                <div className="h-10 bg-gray-200 rounded w-full"></div>
+              <div key={i} className="bg-white rounded-3xl p-8 shadow-xl border border-slate-100 animate-pulse h-48">
+                <div className="h-8 bg-slate-200 rounded-full w-2/3 mb-6"></div>
+                <div className="h-4 bg-slate-200 rounded-full w-1/2 mb-3"></div>
               </div>
             ))}
           </div>
         ) : filteredAccounts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
             {filteredAccounts.map((acc) => (
               <motion.div
                 key={acc.id}
-                className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                whileHover={{ y: -4 }}
+                onClick={() => setSelectedAccountDetails(acc)}
+                className="group relative bg-white/80 backdrop-blur-md rounded-[2.5rem] shadow-lg hover:shadow-2xl transition-all duration-300 border border-slate-200 overflow-hidden cursor-pointer hover:border-blue-300"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                whileHover={{ y: -8, scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                {/* Card Header with Gradient */}
-                <div className={`bg-gradient-to-r ${getAccountGradient(acc.accountType)} p-6 text-white`}>
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="bg-white/20 backdrop-blur-sm p-3 rounded-xl">
+                {/* Top gradient strip */}
+                <div className={`h-2 w-full bg-gradient-to-r ${getAccountGradient(acc.accountType)}`} />
+
+                <div className="p-8">
+                  <div className="flex justify-between items-start mb-6">
+                    <div className={`p-4 rounded-2xl bg-gradient-to-br ${getAccountGradient(acc.accountType)} text-white shadow-lg group-hover:shadow-blue-500/30 transition-shadow`}>
                       {getAccountIcon(acc.accountType)}
                     </div>
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold ${acc.status === "ACTIVE"
-                        ? "bg-green-500/30 text-white"
+                      className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-wide uppercase shadow-sm ${acc.status === "ACTIVE"
+                        ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
                         : acc.status === "PENDING"
-                          ? "bg-amber-500/30 text-white"
-                          : "bg-red-500/30 text-white"
+                          ? "bg-amber-100 text-amber-700 border border-amber-200"
+                          : "bg-rose-100 text-rose-700 border border-rose-200"
                         }`}
                     >
                       {acc.status}
                     </span>
                   </div>
-                  <h3 className="text-2xl font-bold mb-1">{acc.accountType} ACCOUNT</h3>
-                  <p className="text-white/80 text-sm">Account No: {acc.accountNumber}</p>
-                </div>
 
-                {/* Card Body */}
-                <div className="p-6">
-                  <div className="mb-4">
-                    <p className="text-gray-500 text-xs mb-1">CIF Number</p>
-                    <p className="text-gray-900 font-semibold">{acc.cifNumber}</p>
+                  <div>
+                    <h3 className="text-2xl font-bold text-slate-800 mb-2 truncate">
+                      {acc.accountType}
+                    </h3>
+                    <p className="font-mono text-slate-500 text-lg tracking-wider opacity-90 truncate">
+                      {acc.accountNumber}
+                    </p>
                   </div>
 
-                  {/* Balance */}
-                  <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-4 mb-4">
-                    {visibleBalances[acc.id] ? (
-                      <div>
-                        <p className="text-gray-600 text-xs mb-1">Available Balance</p>
-                        <p className="text-3xl font-bold text-gray-900">₹{visibleBalances[acc.id].toLocaleString()}</p>
-                      </div>
-                    ) : (
-                      <div className="text-center py-2">
-                        <p className="text-gray-500 text-sm">Balance hidden</p>
-                        <p className="text-gray-400 text-xs">Enter PIN to view</p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Additional Details */}
-                  {(acc.occupation || acc.sourceOfIncome || acc.grossAnnualIncome) && (
-                    <div className="mb-4 space-y-2 text-sm">
-                      {acc.occupation && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">Occupation:</span>
-                          <span className="text-gray-900 font-medium">{acc.occupation}</span>
-                        </div>
-                      )}
-                      {acc.sourceOfIncome && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">Income Source:</span>
-                          <span className="text-gray-900 font-medium">{acc.sourceOfIncome}</span>
-                        </div>
-                      )}
-                      {acc.grossAnnualIncome && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">Annual Income:</span>
-                          <span className="text-gray-900 font-medium">₹{acc.grossAnnualIncome.toLocaleString()}</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Nominee Info */}
-                  {(acc.nomineeName || acc.nomineeRelation) && (
-                    <div className="border-t border-gray-100 pt-4 mb-4">
-                      <p className="text-gray-700 font-semibold text-sm mb-2">Nominee Details</p>
-                      <div className="space-y-1 text-sm">
-                        {acc.nomineeName && <p className="text-gray-600">Name: <span className="text-gray-900">{acc.nomineeName}</span></p>}
-                        {acc.nomineeRelation && <p className="text-gray-600">Relation: <span className="text-gray-900">{acc.nomineeRelation}</span></p>}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Action Buttons */}
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => handleCheckBalance(acc.id, acc.accountNumber)}
-                      className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg font-medium"
-                    >
-                      <FaMoneyBillWave />
-                      Balance
-                    </button>
-                    <button
-                      onClick={() => setSelectedAccountForPin(acc.accountNumber)}
-                      className="flex-1 flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-3 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg font-medium"
-                    >
-                      <FaKey />
-                      Change PIN
-                    </button>
+                  <div className="mt-8 flex items-center text-blue-600 font-semibold text-sm group-hover:translate-x-2 transition-transform">
+                    View Details &rarr;
                   </div>
                 </div>
               </motion.div>
@@ -310,75 +278,103 @@ const Account = () => {
           </div>
         ) : (
           <motion.div
-            className="bg-white rounded-2xl shadow-lg p-12 text-center"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center justify-center py-20 bg-white/60 backdrop-blur-lg rounded-[2.5rem] border border-white/40 shadow-xl text-center"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
           >
-            <div className="max-w-md mx-auto">
-              <div className="bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <FaUniversity className="text-4xl text-blue-600" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">No Accounts Found</h3>
-              <p className="text-gray-600 mb-6">
-                {search
-                  ? "No accounts match your search. Try a different account number."
-                  : "You don't have any accounts yet. Open a new account to get started!"}
-              </p>
-              {!search && (
-                <button
-                  onClick={() => setShowForm(true)}
-                  className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-                >
-                  <FaPlus />
-                  Open New Account
-                </button>
-              )}
+            <div className="bg-blue-50 w-24 h-24 rounded-full flex items-center justify-center mb-6 shadow-inner">
+              <FaUniversity className="text-5xl text-blue-500/80" />
             </div>
+            <h3 className="text-3xl font-bold text-slate-900 mb-3">No Accounts Found</h3>
+            <p className="text-slate-500 max-w-md mx-auto mb-8 text-lg">
+              {search
+                ? "We couldn't find any accounts matching your search criteria."
+                : "It looks like you haven't opened any accounts yet. Start your journey today!"}
+            </p>
+            {!search && (
+              <button
+                onClick={() => setShowForm(true)}
+                className="inline-flex items-center gap-3 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold shadow-lg shadow-blue-500/25 transition-all hover:scale-105"
+              >
+                <FaPlus />
+                Open First Account
+              </button>
+            )}
           </motion.div>
         )}
       </div>
 
-      {/* Change PIN Modal */}
+      {/* Account Details Modal */}
       <AnimatePresence>
-        {selectedAccountForPin && (
-          <ChangePinForm
-            accountNumber={selectedAccountForPin}
-            onSuccess={() => {
-              setSelectedAccountForPin(null);
-              fetchAccounts();
-            }}
-            onCancel={() => setSelectedAccountForPin(null)}
+        {selectedAccountDetails && (
+          <AccountDetailsModal
+            account={selectedAccountDetails}
+            onClose={() => setSelectedAccountDetails(null)}
+            onCheckBalance={handleCheckBalance}
+            onChangePin={setSelectedAccountForPin}
+            balance={visibleBalances[selectedAccountDetails.id]}
           />
         )}
       </AnimatePresence>
 
-      {/* PIN Entry Modal */}
+      {/* Change PIN Modal */}
+      <AnimatePresence>
+        {selectedAccountForPin && (
+          <div className="relative z-[60]">
+            {/* z-60 to be above details modal if needed, though usually render order handles it. 
+                 Since Details modal is in the same stacking context, strict z-index helps.
+                 DetailsModal usually has z-50.
+             */}
+            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" />
+            <div className="fixed inset-0 flex items-center justify-center p-4">
+              <ChangePinForm
+                accountNumber={selectedAccountForPin}
+                onSuccess={() => {
+                  setSelectedAccountForPin(null);
+                  fetchAccounts();
+                }}
+                onCancel={() => setSelectedAccountForPin(null)}
+              />
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* PIN Entry Modal (for Balance) */}
       <AnimatePresence>
         {selectedAccountForBalance && (
           <motion.div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 z-[60] flex items-center justify-center p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => {
-              setSelectedAccountForBalance(null);
-              setEnteredPin("");
-              localStorage.removeItem("selectedAccountNumber");
-            }}
           >
+            <div
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+              onClick={() => {
+                setSelectedAccountForBalance(null);
+                setEnteredPin("");
+                localStorage.removeItem("selectedAccountNumber");
+              }}
+            />
+
             <motion.div
-              className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md"
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative bg-white rounded-3xl shadow-2xl p-8 w-full max-w-sm border border-slate-100 overflow-hidden"
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+              transition={{ type: "spring", bounce: 0.3 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="text-center mb-6">
-                <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FaKey className="text-3xl text-blue-600" />
+              {/* Decorative background blob */}
+              <div className="absolute -top-20 -right-20 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+
+              <div className="text-center mb-8 relative">
+                <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm rotate-3">
+                  <FaKey className="text-2xl text-blue-600" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">Enter PIN</h3>
-                <p className="text-gray-600">Enter your 4-digit PIN to view balance</p>
+                <h3 className="text-2xl font-bold text-slate-900">Enter Security PIN</h3>
+                <p className="text-slate-500 text-sm mt-1">Authenticate to view balance</p>
               </div>
 
               <input
@@ -387,27 +383,27 @@ const Account = () => {
                 value={enteredPin}
                 onChange={(e) => setEnteredPin(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && submitPin(selectedAccountForBalance)}
-                className="w-full text-center text-3xl tracking-widest border-2 border-gray-200 rounded-xl p-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none mb-6 font-mono"
+                className="w-full text-center text-4xl tracking-[0.5em] font-bold text-slate-800 border-b-2 border-slate-200 bg-transparent py-4 focus:border-blue-500 outline-none transition-all placeholder-slate-200 mb-8"
                 placeholder="••••"
                 autoFocus
               />
 
-              <div className="flex gap-3">
-                <button
-                  onClick={() => submitPin(selectedAccountForBalance)}
-                  className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg font-semibold"
-                >
-                  Submit
-                </button>
+              <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={() => {
                     setSelectedAccountForBalance(null);
                     setEnteredPin("");
                     localStorage.removeItem("selectedAccountNumber");
                   }}
-                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl transition-all duration-300 font-semibold"
+                  className="px-4 py-3 rounded-xl text-slate-600 font-semibold hover:bg-slate-50 transition-colors"
                 >
                   Cancel
+                </button>
+                <button
+                  onClick={() => submitPin(selectedAccountForBalance)}
+                  className="px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold shadow-lg shadow-blue-500/25 transition-all hover:scale-105 active:scale-95"
+                >
+                  Verify
                 </button>
               </div>
             </motion.div>
